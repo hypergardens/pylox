@@ -34,7 +34,7 @@ class Scanner {
       case ":":
         this.addToken("COLON");
         break;
-      case ":":
+      case ";":
         this.addToken("SEMICOLON");
         break;
       case "@":

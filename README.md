@@ -2,10 +2,9 @@
 
 - An ugly language that loves you <3
 
-code = expression*
+program = expression*
 
-expression = unary | program
-program = startlabel expression* endlabel
+expression = unary | startlabel expression* endlabel
 startlabel = :word 
 endlabel = ;word 
 

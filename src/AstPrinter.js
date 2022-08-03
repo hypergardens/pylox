@@ -11,7 +11,6 @@ class AstPrinter extends TreeVisitor {
       if (i > 0) strArr.push(' ');
       let arg = args[i];
       // arg is string
-      console.log({ arg });
       if (Array.isArray(arg)) {
         // strArr.push('(');
         // HACK: split array into units recursively
@@ -35,23 +34,23 @@ class AstPrinter extends TreeVisitor {
   }
 
   visitUnaryExpr(expr) {
-    console.log('Unary parenth');
+    // console.log('Unary parenth');
     return this.parenthesise("(", expr.operator, expr.right, ")");
   }
 
   visitLiteralExpr(expr) {
     if (expr.value == null) return 'NULL';
-    console.log(`Value ${expr.value}`);
+    // console.log(`Value ${expr.value}`);
     return this.parenthesise(expr.value);
   }
 
   visitWordExpr(expr) {
     return this.parenthesise(expr.value);
   }
-  // visitProgramExpr(expr) {
-  // if (expr.value == null) return 'NULL';
-  // return expr.value.toString();
-  // }
+  visitProgramExpr(expr) {
+    // if (expr.value == null) return 'NULL';
+    return this.parenthesise(`${expr.name}[`, expr.expressions, "]");
+  }
 }
 
 export default AstPrinter; 

@@ -7,40 +7,40 @@ class Parser {
     this.current = 0;
   }
 
-  program(progName = null) {
-    console.log(`stuck ${this.peek()}`);
-    let expressions = [];
-    console.log(`Begin program ${progName}`);
-    while (
-      !this.isAtEnd() &&
+  expressions(progName = null) {
+    let exprs = [];
+    while (!this.isAtEnd() &&
+      !(progName !== null &&
+        this.check("IDENTIFIER") &&
+        this.peek(1).type === "SEMICOLON")) {
+      exprs.push(this.expression());
+    }
+    return exprs;
+  }
 
-      !(this.peek(1).type === "COLON" &&
-        this.peek(2).type === "IDENTIFIER" &&
-        progName !== null &&
-        this.peek(2).value === progName)) {
-      console.log(`pushed expr into program ${progName} <- ${this.peek()}`);
-      expressions.push(this.expression());
-    };
-
-
+  expression(progName = null) {
+    let expr;
     if (this.check("IDENTIFIER") && this.peek(1).type === "COLON") {
+      // start subprogram
       this.match("IDENTIFIER");
       let progName = this.previous().lexeme;
       this.match("COLON");
+
       console.log("subprogram:", progName);
-      let progExpr = this.program(progName);
-      this.match("COLON");
-      this.match("IDENTIFIER");
-      expressions.push(progExpr);
+      // let progExpr = this.program(progName);
+      let exprs = this.expressions(progName);
+      // if (progName !== null && !(this.check("IDENTIFIER") && this.peek(1).type === "SEMICOLON")) {
+      // console.error();
+      // } else {
+      this.consume("IDENTIFIER", `Unfinished program ${progName}`);
+      this.consume("SEMICOLON", `Unfinished program ${progName}`);
+      expr = new Expr.Program(progName, exprs);
+      // }
+      // end subprogram
+    } else {
+      // unary expression, not subprogram
+      expr = this.unary();
     };
-
-    console.log(`End program ${progName} `);
-    let progExpr = new Expr.Program(progName, expressions);
-    return progExpr;
-  }
-
-  expression() {
-    let expr = this.unary();
     return expr;
   }
 
@@ -72,6 +72,12 @@ class Parser {
     }
     return false;
   }
+
+  consume(type, message) {
+    if (this.check(type)) return this.advance();
+    throw { token: this.peek(), message };
+  }
+
   check(type) {
     if (this.isAtEnd()) return false;
     return this.peek().type === type;

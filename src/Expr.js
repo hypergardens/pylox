@@ -39,9 +39,9 @@ class Word extends Base {
   }
 }
 class Program extends Base {
-  constructor(value, expressions) {
+  constructor(name, expressions) {
     super();
-    this.value = value;
+    this.name = name;
     this.expressions = expressions;
     this.type = "Program";
   }

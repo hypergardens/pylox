@@ -10,16 +10,23 @@ createApp(App).mount('#app');
 
 let pylox = new Pylox();
 let tokens = pylox.tokens(`
-    1 2
-    :square
+    4 !odd
+    square:
     dup *
-    ;square
+    SQ: AAA SQ;
 
-    !odd !0 4 -3 square
+    square;
+    
     `);
 
-let pt = pylox.tokens;
-let tree = new Parser(tokens).program();
+
+// 1 2
+//     : square;
+// dup *
+//     ; square
+
+
+let tree = new Parser(tokens).expressions();
 let parens = (new AstPrinter()).parenthesise(tree);
 console.log(tokens);
 console.log(parens);
