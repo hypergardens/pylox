@@ -1,3 +1,5 @@
+import { Expr } from "./Expr";
+import Token from "./Token";
 
 class Scanner {
   constructor(source, vm) {
@@ -21,11 +23,8 @@ class Scanner {
   scanToken() {
     let char = this.advance();
     switch (char) {
-      case ".":
-        this.addToken("DOT");
-        break;
-      case ",":
-        this.addToken("COMMA");
+      case "-":
+        this.addToken("MINUS");
         break;
       case "@":
         this.addToken("AT");
@@ -156,20 +155,7 @@ class Scanner {
     return this.current >= this.source.length;
   }
 }
-class Token {
-
-  constructor(type, lexeme, literal, line) {
-    this.type = type;
-    this.lexeme = lexeme;
-    this.literal = literal;
-    this.line = line;
-  }
-
-  toString() {
-    return `${this.type} ${this.lexeme} ${this.literal} at ${this.line}`;
-  }
-}
-class VM {
+class Pylox {
   constructor() {
     this.hadError = false;
   }
@@ -182,9 +168,12 @@ class VM {
     console.error(`[Line ${line}] Error ${where}: ${message}`);
     this.hadError = true;
   }
-  run(source) {
+  tokens(source) {
     let scanner = new Scanner(source, this);
-    let tokens = scanner.scanTokens();
+    return scanner.scanTokens();
+  }
+  run(source) {
+    let tokens = this.tokens(source);
     for (let i = 0; i < tokens.length; i++) {
       let token = tokens[i];
       console.log(`Token:${token}`);
@@ -195,10 +184,4 @@ class VM {
   }
 }
 
-let vm = new VM();
-vm.run(`
-    2.4
-    null
-    if
-    let X _h3ll
-    `);
+export default Pylox;

@@ -6,7 +6,7 @@ code = expression*
 literal = STRING | NUMBER | "null"
 expression = identifier | literal | unary | program
 unary = ("-" | "!") expression
-program = label: expression* :label 
+program = identifier: expression* :identifier 
 
 ?jump ; C A B]
 jump ; L]
@@ -22,7 +22,6 @@ log vs _log
 @1 @2 _+
 
 label
-
 3.14 #pi
 
 square: 
