@@ -49,7 +49,7 @@ class AstPrinter extends TreeVisitor {
   }
   visitProgramExpr(expr) {
     // if (expr.value == null) return 'NULL';
-    return this.parenthesise(`${expr.name}[`, expr.expressions, "]");
+    return this.parenthesise(`${expr.name}[`, expr.expressions, `]${expr.name}`);
   }
 }
 

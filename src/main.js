@@ -13,10 +13,12 @@ let tokens = pylox.tokens(`
     4 !odd
     square:
     dup *
-    SQ: AAA SQ;
-
+    SQ: AAA 
+   
     square;
-    
+    1 2
+    SQ;
+    3 4
     `);
 
 
