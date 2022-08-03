@@ -24,7 +24,18 @@ class Scanner {
     let char = this.advance();
     switch (char) {
       case "-":
-        this.addToken("MINUS");
+        if (this.isDigit((this.peek()))) {
+          console.log("negative nr");
+          this.number();
+        } else {
+          this.addToken("MINUS");
+        }
+        break;
+      case ":":
+        this.addToken("COLON");
+        break;
+      case ":":
+        this.addToken("SEMICOLON");
         break;
       case "@":
         this.addToken("AT");
@@ -38,7 +49,8 @@ class Scanner {
         }
 
       case "!":
-        this.addToken(this.match("=") ? "BANG_EQUAL" : "BANG");
+        this.addToken("BANG");
+      // this.addToken(this.match("=") ? "BANG_EQUAL" : "BANG");
 
       // ignore whitespace
       case " ":
@@ -60,7 +72,8 @@ class Scanner {
         } else if (this.isAlpha(char)) {
           this.identifier();
         } else {
-          this.vm.error(this.line, `Unexpected character ${char}.`);
+          this.identifier();
+          // this.vm.error(this.line, `Unexpected character ${char}.`);
         }
         break;
     }
@@ -70,7 +83,6 @@ class Scanner {
     while (this.isAlphaNumeric(this.peek())) this.advance();
 
     let map = {
-      "if": "IF",
       "null": "NULL"
     };
 

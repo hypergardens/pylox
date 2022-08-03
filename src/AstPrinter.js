@@ -1,22 +1,23 @@
-import TreeVisitor from "./TreeVisitor";
-import { Expr } from "./Expr";
-import Token from "./Token";
+import TreeVisitor from './TreeVisitor';
+import { Expr } from './Expr';
+import Token from './Token';
 class AstPrinter extends TreeVisitor {
   constructor() {
     super();
   }
   parenthesise(...args) {
     let strArr = [];
-    strArr.push("(");
     for (let i = 0; i < args.length; i++) {
-      if (i > 0) strArr.push(" ");
+      if (i > 0) strArr.push(' ');
       let arg = args[i];
       // arg is string
       console.log({ arg });
       if (Array.isArray(arg)) {
+        // strArr.push('(');
         // HACK: split array into units recursively
         strArr.push(this.parenthesise(...arg));
-      } else if (typeof arg === 'string') {
+        // strArr.push(')');
+      } else if (typeof arg === 'string' || typeof arg === 'number') {
         // arg is string
         strArr.push(arg);
       } else if (arg instanceof Expr.Base) {
@@ -25,27 +26,30 @@ class AstPrinter extends TreeVisitor {
       }
       else if (arg instanceof Token) {
         // arg is token
-        console.log("Token Parenth");
         // HACK: should probably use a proper expression
         // console.log(arg);
         strArr.push(arg.lexeme);
       }
     }
-    strArr.push(')');
     return strArr.join('');
   }
 
   visitUnaryExpr(expr) {
-    console.log("Unary parenth");
-    return this.parenthesise(expr.operator, expr.right);
+    console.log('Unary parenth');
+    return this.parenthesise("(", expr.operator, expr.right, ")");
   }
 
   visitLiteralExpr(expr) {
-    if (expr.value == null) return "NULL";
-    return expr.value.toString();
+    if (expr.value == null) return 'NULL';
+    console.log(`Value ${expr.value}`);
+    return this.parenthesise(expr.value);
+  }
+
+  visitWordExpr(expr) {
+    return this.parenthesise(expr.value);
   }
   // visitProgramExpr(expr) {
-  // if (expr.value == null) return "NULL";
+  // if (expr.value == null) return 'NULL';
   // return expr.value.toString();
   // }
 }

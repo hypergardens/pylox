@@ -3,10 +3,18 @@
 - An ugly language that loves you <3
 
 code = expression*
-literal = STRING | NUMBER | "null"
-expression = identifier | literal | unary | program
-unary = ("-" | "!") expression
-program = identifier: expression* :identifier 
+
+expression = unary | program
+program = startlabel expression* endlabel
+startlabel = :word 
+endlabel = ;word 
+
+unary = ("!") unary
+      | primary
+
+primary = STRING | NUMBER | word | "null"
+
+
 
 ?jump ; C A B]
 jump ; L]

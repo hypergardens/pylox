@@ -4,17 +4,22 @@ import App from './App.vue';
 import { Expr } from './Expr';
 import Pylox from "./Pylox";
 import AstPrinter from "./AstPrinter";
+import Parser from "./Parser";
+
 createApp(App).mount('#app');
 
 let pylox = new Pylox();
 let tokens = pylox.tokens(`
-    2.4 -5
-    null
-    if
-    let X _h3ll
+    1 2
+    :square
+    dup *
+    ;square
+
+    !odd !0 4 -3 square
     `);
 
 let pt = pylox.tokens;
+let tree = new Parser(tokens).program();
+let parens = (new AstPrinter()).parenthesise(tree);
 console.log(tokens);
-let parens = (new AstPrinter()).parenthesise(new Expr.Unary(tokens[1], tokens[2]));
 console.log(parens);

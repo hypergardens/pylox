@@ -28,6 +28,27 @@ class Literal extends Base {
   }
 }
 
+class Word extends Base {
+  constructor(value) {
+    super();
+    this.value = value;
+    this.type = "Word";
+  }
+  accept(visitor) {
+    return visitor.visitWordExpr(this);
+  }
+}
+class Program extends Base {
+  constructor(value, expressions) {
+    super();
+    this.value = value;
+    this.expressions = expressions;
+    this.type = "Program";
+  }
+  accept(visitor) {
+    return visitor.visitProgramExpr(this);
+  }
+}
 // class Program extends Base {
 //   constructor(label) {
 //     this.label = label;
@@ -39,5 +60,5 @@ class Literal extends Base {
 // }
 
 export const Expr = {
-  Base, Unary, Literal, //Program
+  Base, Unary, Literal, Word, Program
 };
