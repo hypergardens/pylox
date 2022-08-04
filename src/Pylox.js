@@ -3,6 +3,7 @@ import Token from "./Token";
 import Scanner from "./Scanner";
 import Parser from "./Parser";
 import Interpreter from "./Interpreter";
+import SRPasser from "./SRPasser";
 
 class Pylox {
   constructor() {
@@ -10,6 +11,7 @@ class Pylox {
     this.scanner = new Scanner(this);
     this.parser = new Parser(this);
     this.interpreter = new Interpreter(this);
+    this.subPasser = new SRPasser(this);
     this.stack = [];
     this.consoleText = [];
     this.hadError = false;
@@ -38,7 +40,9 @@ class Pylox {
   parse(source) {
     // TODO: figure out if a separate scanner refresh is necessary
     this.parser = new Parser(this);
+    this.subPasser = new SRPasser(this);
     let tokens = this.tokenise(source);
+    // tokens = this.subPasser.pass(tokens);
     return this.parser.parse(tokens);
   }
 

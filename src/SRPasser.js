@@ -1,7 +1,7 @@
 import { Expr } from "./Expr";
 import Token from "./Token";
 
-class Parser {
+class SRPasser {
   constructor(vm) {
     this.vm = vm;
     this.current = 0;
@@ -9,52 +9,32 @@ class Parser {
     this.programs = {};
   }
 
-  parse(tokens) {
+  pass(tokens) {
     this.tokens = tokens;
     let exprs = [];
     try {
       while (!this.isAtEnd()) {
         // ((WHITESPACE | COMMENT | NEWLINE)* primary)* EOF
-        while (this.match("WHITESPACE", "COMMENT", "NEWLINE")) {
-        }
-        if (!this.isAtEnd()) {
-          let getExpr = this.primary();
-          if (getExpr) {
-            exprs.push(getExpr);
-          }
-        }
-        while (this.match("WHITESPACE", "COMMENT", "NEWLINE")) {
-        }
+        this.advance();
       }
-      return exprs;
+      return this.tokens;
     } catch (error) {
       return null;
     }
   }
 
-  primary() {
-    // if (this.match("SEMICOLON")) return new Expr.Literal(";");
-    // if (this.match("COLON")) return new Expr.Literal(":");
-
-    if (this.match("NULL")) {
-      // null
-      return new Expr.Literal(null);
-    } else if (this.match("NUMBER", "STRING")) {
-      // 123 "abc"
-      return new Expr.Literal(this.previous().literal);
-    } else if (this.match("LABEL")) {
-      // abc: abc;
-      console.log(`Matched label ${this.previous().token}`);
-      this.advance();
-    } else if (this.match("WORD")) {
-      // def
-      let word = this.previous();
-      return new Expr.Word(word);
-    } else {
-      // ???
-      let token = this.peek();
-      this.error(token, `Unexpected token: ${this.tokens[this.current]} `);
-      // this.advance();
+  pass() {
+    for (let i = 0; i < this.tokens; i++) {
+      if (this.match("LABEL")) {
+        // abc: abc;
+        console.log(`SRP: matched label ${this.previous().token}`);
+      } else if (this.match("NUMBER", "STRING", "NULL", "WORD", "WHITESPACE", "COMMENT", "NEWLINE")) {
+      } else {
+        // ???
+        let token = this.peek();
+        this.error(token, `SR pass, unexpected token: ${this.tokens[this.current]} `);
+        // this.advance();
+      }
     }
   }
 
@@ -119,4 +99,4 @@ class Parser {
   }
 }
 
-export default Parser;;;;
+export default SRPasser;

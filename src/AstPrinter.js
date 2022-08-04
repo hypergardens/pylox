@@ -45,10 +45,10 @@ class AstPrinter extends TreeVisitor {
   }
 
   visitWordExpr(expr) {
-    return this.parenthesise(expr.value);
+    return this.parenthesise(expr.token);
   }
   // visitProgramExpr(expr) {
-  //   // if (expr.value == null) return 'NULL';
+  //   // if (expr.token == null) return 'NULL';
   //   return this.parenthesise(`${expr.name}[`, expr.expressions, `]${expr.name}`);
   // }
 }

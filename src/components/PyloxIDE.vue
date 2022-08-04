@@ -19,20 +19,25 @@ export default {
     interpret() {
       this.pylox = new Pylox()
       this.pylox.interpret(this.code)
-      this.stackText = `${this.pylox.interpreter.stack.join(',')}`
+      this.stackText = `[${this.pylox.interpreter.stack.reverse().join(',')}`
       this.consoleText = `${this.pylox.consoleText}`
     },
-    created() {
-      let minusTest = `-1 - 2 --3 - - 4 -2a - b`
-      let preBang = `!1 ! 2 !!3 ! ! 4 !a ! b !2c`
-      let postBang = `1! 2 ! 3!! ! 4 ! a! b ! 2c! `
-      let tildeTest = `2 2 +`
-      let prog = `
-          sq:
-          dup *
-          sq;
-          4 sq`
-    },
+  },
+  mounted: function () {
+    let minusTest = `-1 - 2 --3 - - 4 -2a - b`
+    let preBang = `!1 ! 2 !!3 ! ! 4 !a ! b !2c`
+    let postBang = `1! 2 ! 3!! ! 4 ! a! b ! 2c! `
+    let tildeTest = `2 2 +`
+    let prog = `
+sq:
+dup *
+sq;
+4 sq`
+    this.code = prog
+    // console.log(this.pylox.parse(this.code))
+    // this.interpret()
+    // this.$emit('input')
+    // console.log('mounted')
   },
 }
 
@@ -54,19 +59,17 @@ export default {
 </script>
 <template>
   <div class="wrapper">
-    <aside class="aside">
-      <p class="stack-view code-text">Output: {{ stackText }}</p>
+    <textarea
+      spellcheck="false"
+      class="code-area code-text aside"
+      v-model="code"
+      @input.prevent="inputtedCode"
+    ></textarea>
+    <aside class="content stack-view code-text">
+      {{ stackText }}
     </aside>
-    <div class="content">
-      <textarea
-        spellcheck="false"
-        class="code-area code-text"
-        v-model="code"
-        @input.prevent="inputtedCode"
-      ></textarea>
-    </div>
-    <footer class="footer">
-      <p class="console-view code-text">Console: {{ consoleText }}</p>
+    <footer class="footer console-view code-text">
+      <span class="">Console: {{ consoleText }}</span>
     </footer>
   </div>
 </template>
@@ -77,10 +80,12 @@ export default {
   line-height: 24px;
   font-weight: 400;
   font-family: monospace;
+
+  box-sizing: border-box;
 }
 .wrapper {
   display: grid;
-  grid-template-columns: 600px 300px;
+  grid-template-columns: 300px 600px;
 
   grid-template-rows: 300px 300px;
   grid-template-areas:
@@ -89,22 +94,15 @@ export default {
   grid-gap: 15px;
 }
 .code-area {
-  /* width: 300px; */
-  height: 200px;
-  display: inline-block;
-  grid-area: content;
+  grid-area: aside;
 }
 
 .stack-view {
-  /* width: 600px; */
-  height: 200px;
+  margin: 0px;
   background-color: #111;
-  grid-area: aside;
+  grid-area: content;
 }
 .console-view {
-  /* width: 600px; */
-  height: 200px;
-  display: inline-block;
   grid-area: footer;
 }
 </style>

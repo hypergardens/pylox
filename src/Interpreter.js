@@ -8,9 +8,7 @@ class Interpreter extends TreeVisitor {
     this.expressions = [];
     this.stack = [];
     this.execStack = [{ ptr: 0, label: "main" }];
-    this.ignoring = {
-      "main": false
-    };
+    this.ignoring = {};
   }
   interpret(expressions) {
     this.expressions = expressions;
@@ -31,19 +29,35 @@ class Interpreter extends TreeVisitor {
       }
     }
   }
+  isIgnoring(label = null) {
+    if (label === null) {
+      for (let label of this.ignoring) {
+        if (this.ignoring === true) {
+          return true;
+        }
+      }
+    } else {
+      return (this.ignoring[label]);
+    }
+  }
+  visitLabelExpr(expr) {
+    // this.stack.push(expr.value);
+    this.ignoring[expr.token.lexeme] = expr.value;
+    return this.stack;
+  }
   visitLiteralExpr(expr) {
     this.stack.push(expr.value);
     return this.stack;
   }
   visitWordExpr(expr) {
-    let token = expr.value;
-    let word = expr.value.lexeme;
+    let token = expr.token;
+    let word = expr.token.lexeme;
     let termA, termB, termC;
     switch (word) {
       case '@':
         this.checkStackSize(token, 1);
         termA = this.stack.pop();
-        this.checkNumber(token, termA);
+        this.checkInt(token, termA);
         this.checkStackSize(token, termA);
         termB = this.top(token, termA);
         console.log(`term B ${termB}`);
@@ -84,8 +98,13 @@ class Interpreter extends TreeVisitor {
             this.ignoring[label] = true;
           }
           // exec till label;
+        } else if (word[word.length - 1] === `;`) {
+          let label = word.slice(0, word.length - 1);
+          console.log(`finished label ${label} ${this.isIgnoring(label)}`);
+
+        } else {
+          this.stack.push(`${word}$`);
         }
-        this.stack.push(`${word}$`);
         break;
     }
     return this.stack;
@@ -129,8 +148,12 @@ class Interpreter extends TreeVisitor {
   };
   checkNumber(token, term) {
     if (!(!isNaN(parseFloat(term)) && isFinite(term))) {
-
       throw { token, message: `${term} is not a number.` };
+    }
+  };
+  checkInt(token, term) {
+    if (!(Number.isInteger(term))) {
+      throw { token, message: `${term} is not an integer.` };
     }
   };
 };

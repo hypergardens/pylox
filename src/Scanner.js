@@ -66,16 +66,30 @@ class Scanner {
 
   word() {
     while (this.isAlphaNumeric(this.peek()) && !this.isAtEnd()) this.advance();
+    let type, text;
+    if (this.match(":")) {
+      // start label abc:
+      text = this.source.slice(this.start, this.current);
+      this.addToken("LABEL", true);
+      console.log(`start-label: ${text}`);
+    } else if (this.match(";")) {
+      // end label abc;
+      text = this.source.slice(this.start, this.current);
+      this.addToken("LABEL", false);
+      console.log(`end-label: ${text}`);
+    } else {
+      // normal word abc
+      let map = {
+        "null": "NULL"
+      };
+      text = this.source.slice(this.start, this.current);
+      type = map[text];
+      if (type === undefined) type = "WORD";
+      // word unless mapped to null
+      this.addToken(type);
+    }
 
-    let map = {
-      "null": "NULL"
-    };
 
-    let text = this.source.slice(this.start, this.current);
-    let type = map[text];
-    // word unless mapped to null
-    if (type === undefined) type = "WORD";
-    this.addToken(type);
   }
 
   number() {
@@ -155,9 +169,8 @@ class Scanner {
   }
 
   isCharacter(char) {
-    return char !== "" && !this.isWhitespace(char) && !this.isDigit(char);
-    return "/:;_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".indexOf(char) !== -1;
-    return "/:;_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".indexOf(char) !== -1;
+    return char !== "" && ";:".indexOf(char) === -1 && !this.isWhitespace(char) && !this.isDigit(char);
+    // return "/:;_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".indexOf(char) !== -1;
   }
 
   isAlphaNumeric(char) {
