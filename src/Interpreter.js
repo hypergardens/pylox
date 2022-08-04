@@ -38,7 +38,17 @@ class Interpreter extends TreeVisitor {
   visitWordExpr(expr) {
     let token = expr.value;
     let word = expr.value.lexeme;
+    let termA, termB, termC;
     switch (word) {
+      case '@':
+        this.checkStackSize(token, 1);
+        termA = this.stack.pop();
+        this.checkNumber(token, termA);
+        this.checkStackSize(token, termA);
+        termB = this.top(token, termA);
+        console.log(`term B ${termB}`);
+        this.stack.push(termB);
+        break;
       case 'dup':
         this.checkStackSize(token, 1);
         let value = this.stack.pop();
@@ -47,12 +57,16 @@ class Interpreter extends TreeVisitor {
 
       case '+':
         this.checkStackSize(token, 2);
-        this.stack.push(this.stack.pop() + this.stack.pop());
+        termA = this.stack.pop();
+        termB = this.stack.pop();
+        this.stack.push(termA + termB);
         break;
 
       case '*':
         this.checkStackSize(token, 2);
-        this.stack.push(this.stack.pop() * this.stack.pop());
+        termA = this.stack.pop();
+        termB = this.stack.pop();
+        this.stack.push(termA * termB);
         break;
 
       case '!':
@@ -88,12 +102,12 @@ class Interpreter extends TreeVisitor {
     return;
   }
 
-  top(n) {
-    if (this.stack.length < Math.abs(n)) {
-      console.log(`Stack too small.`);
+  top(token, n) {
+    if (n < 0) {
+      this.checkStackSize(token, Math.abs(n));
+      return this.stack[-n - 1];
     } else if (n >= 0) {
-      return this.stack[0];
-    } else {
+      this.checkStackSize(token, n + 1);
       return this.stack[this.stack.length - n - 1];
     }
   }
@@ -106,12 +120,18 @@ class Interpreter extends TreeVisitor {
     // check 0 or 1
     for (let i = 0; i < n; i++) {
       if ([1, 0].indexOf(this.top(i)) === -1)
-        throw { token, message: `Must have bool operand. Found: ${this.top(i)}` };
+        throw { token, message: `Must have bool operand. Found: ${this.top(token, i)}` };
     }
   };
   checkStackSize(token, n = 0) {
     if (this.stack.length < n)
       throw { token, message: `Insufficient stack size: ${n}.` };
+  };
+  checkNumber(token, term) {
+    if (!(!isNaN(parseFloat(term)) && isFinite(term))) {
+
+      throw { token, message: `${term} is not a number.` };
+    }
   };
 };
 

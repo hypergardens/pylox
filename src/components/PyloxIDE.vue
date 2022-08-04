@@ -5,16 +5,22 @@ export default {
   name: 'app',
   data() {
     return {
-      code: 'testCode',
+      code: 'a b c d e -1 @',
       consoleText: 'testConsole',
+      stackText: 'testStack',
       pylox: new Pylox(),
     }
   },
   methods: {
     inputtedCode(e) {
       // this.$root.$emit('input', e.target.innerHTML)
+      this.interpret()
+    },
+    interpret() {
+      this.pylox = new Pylox()
       this.pylox.interpret(this.code)
-      this.consoleText = this.pylox.interpreter.stack
+      this.stackText = `${this.pylox.interpreter.stack.join(',')}`
+      this.consoleText = `${this.pylox.consoleText}`
     },
     created() {
       let minusTest = `-1 - 2 --3 - - 4 -2a - b`
@@ -47,14 +53,21 @@ export default {
 // console.log(tree)
 </script>
 <template>
-  <div style="display: flex">
-    <p class="code-console code-text">Output: {{ consoleText }}</p>
-    <textarea
-      spellcheck="false"
-      class="code-area code-text"
-      v-model="code"
-      @input.prevent="inputtedCode"
-    ></textarea>
+  <div class="wrapper">
+    <aside class="aside">
+      <p class="stack-view code-text">Output: {{ stackText }}</p>
+    </aside>
+    <div class="content">
+      <textarea
+        spellcheck="false"
+        class="code-area code-text"
+        v-model="code"
+        @input.prevent="inputtedCode"
+      ></textarea>
+    </div>
+    <footer class="footer">
+      <p class="console-view code-text">Console: {{ consoleText }}</p>
+    </footer>
   </div>
 </template>
 
@@ -65,15 +78,33 @@ export default {
   font-weight: 400;
   font-family: monospace;
 }
+.wrapper {
+  display: grid;
+  grid-template-columns: 600px 300px;
+
+  grid-template-rows: 300px 300px;
+  grid-template-areas:
+    'aside content'
+    'footer footer';
+  grid-gap: 15px;
+}
 .code-area {
-  width: 300px;
+  /* width: 300px; */
   height: 200px;
   display: inline-block;
+  grid-area: content;
 }
 
-.code-console {
-  width: 600px;
+.stack-view {
+  /* width: 600px; */
+  height: 200px;
+  background-color: #111;
+  grid-area: aside;
+}
+.console-view {
+  /* width: 600px; */
   height: 200px;
   display: inline-block;
+  grid-area: footer;
 }
 </style>

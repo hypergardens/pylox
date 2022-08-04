@@ -11,11 +11,15 @@ class Pylox {
     this.parser = new Parser(this);
     this.interpreter = new Interpreter(this);
     this.stack = [];
+    this.consoleText = [];
+    this.hadError = false;
   }
 
   report(line, where, message) {
-    console.error(`[Line ${line}] Error ${where}: ${message}`);
+    let errMsg = `[Line ${line}] Error ${where}: ${message}`;
+    console.error(errMsg);
     this.hadError = true;
+    this.consoleText.push(errMsg);
   }
 
   error(token, message) {
