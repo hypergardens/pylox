@@ -1,40 +1,79 @@
-<script setup>
-import { ref } from 'vue'
+<script>
+import Pylox from '../Pylox'
 
-defineProps({
-  msg: String
-})
+export default {
+  name: 'app',
+  data() {
+    return {
+      code: 'testCode',
+      consoleText: 'testConsole',
+      pylox: new Pylox(),
+    }
+  },
+  methods: {
+    inputtedCode(e) {
+      // this.$root.$emit('input', e.target.innerHTML)
+      this.pylox.interpret(this.code)
+      this.consoleText = this.pylox.interpreter.stack
+    },
+    created() {
+      let minusTest = `-1 - 2 --3 - - 4 -2a - b`
+      let preBang = `!1 ! 2 !!3 ! ! 4 !a ! b !2c`
+      let postBang = `1! 2 ! 3!! ! 4 ! a! b ! 2c! `
+      let tildeTest = `2 2 +`
+      let prog = `
+          sq:
+          dup *
+          sq;
+          4 sq`
+    },
+  },
+}
 
-const count = ref(0)
+// let tokens = pylox.tokens(`
+// @ 4
+// sq1:
+// sq1;
+// 1 2
+// `);
+// 1 2
+//     : square;
+// dup *
+//     ; square
+
+// let tokens = pylox.tokenise(source)
+// let tree = pylox.parse(source)
+// console.log(tokens)
+// console.log(tree)
 </script>
-
 <template>
-  <h1>{{ msg }}</h1>
-
-  <div class="card">
-    <button type="button" @click="count++">count is {{ count }}</button>
-    <p>
-      Edit
-      <code>components/HelloWorld.vue</code> to test HMR
-    </p>
+  <div style="display: flex">
+    <p class="code-console code-text">Output: {{ consoleText }}</p>
+    <textarea
+      spellcheck="false"
+      class="code-area code-text"
+      v-model="code"
+      @input.prevent="inputtedCode"
+    ></textarea>
   </div>
-
-  <p>
-    Check out
-    <a href="https://vuejs.org/guide/quick-start.html#local" target="_blank"
-      >create-vue</a
-    >, the official Vue + Vite starter
-  </p>
-  <p>
-    Install
-    <a href="https://github.com/johnsoncodehk/volar" target="_blank">Volar</a>
-    in your IDE for a better DX
-  </p>
-  <p class="read-the-docs">Click on the Vite and Vue logos to learn more</p>
 </template>
 
 <style scoped>
-.read-the-docs {
-  color: #888;
+.code-text {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+  font-family: monospace;
+}
+.code-area {
+  width: 300px;
+  height: 200px;
+  display: inline-block;
+}
+
+.code-console {
+  width: 600px;
+  height: 200px;
+  display: inline-block;
 }
 </style>
