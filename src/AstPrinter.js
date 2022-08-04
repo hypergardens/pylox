@@ -21,13 +21,13 @@ class AstPrinter extends TreeVisitor {
         strArr.push(arg);
       } else if (arg instanceof Expr.Base) {
         // arg is expr
-        strArr.push(arg.accept(this));
+        strArr.push(`(`, arg.accept(this), `)`);
       }
       else if (arg instanceof Token) {
         // arg is token
         // HACK: should probably use a proper expression
-        // console.log(arg);
-        strArr.push(arg.lexeme);
+        strArr.push(`${arg.lexeme}`);
+        // strArr.push(`'${arg.lexeme}'{${arg.line},${arg.col}}`);
       }
     }
     return strArr.join('');
@@ -47,10 +47,10 @@ class AstPrinter extends TreeVisitor {
   visitWordExpr(expr) {
     return this.parenthesise(expr.value);
   }
-  visitProgramExpr(expr) {
-    // if (expr.value == null) return 'NULL';
-    return this.parenthesise(`${expr.name}[`, expr.expressions, `]${expr.name}`);
-  }
+  // visitProgramExpr(expr) {
+  //   // if (expr.value == null) return 'NULL';
+  //   return this.parenthesise(`${expr.name}[`, expr.expressions, `]${expr.name}`);
+  // }
 }
 
 export default AstPrinter; 

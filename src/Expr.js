@@ -38,27 +38,6 @@ class Word extends Base {
     return visitor.visitWordExpr(this);
   }
 }
-class Program extends Base {
-  constructor(name, expressions) {
-    super();
-    this.name = name;
-    this.expressions = expressions;
-    this.type = "Program";
-  }
-  accept(visitor) {
-    return visitor.visitProgramExpr(this);
-  }
-}
-// class Program extends Base {
-//   constructor(label) {
-//     this.label = label;
-//     this.type = "Literal";
-//   }
-//   accept(visitor) {
-//     return visitor.visitProgramExpr(this);
-//   }
-// }
-
 export const Expr = {
-  Base, Unary, Literal, Word, Program
+  Base, Unary, Literal, Word//, Program
 };

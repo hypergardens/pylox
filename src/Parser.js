@@ -2,64 +2,55 @@ import { Expr } from "./Expr";
 import Token from "./Token";
 
 class Parser {
-  constructor(tokens) {
-    this.tokens = tokens;
+  constructor(vm) {
+    this.vm = vm;
     this.current = 0;
+    this.tokens = [];
   }
 
-  expressions(progName = null) {
+  parse(tokens) {
+    this.tokens = tokens;
     let exprs = [];
-    while (!this.isAtEnd() &&
-      !(progName !== null &&
-        this.check("IDENTIFIER") &&
-        this.peek(1).type === "SEMICOLON")) {
-      exprs.push(this.expression());
-    }
-    return exprs;
-  }
-
-  expression(progName = null) {
-    let expr;
-    if (this.check("IDENTIFIER") && this.peek(1).type === "COLON") {
-      // start subprogram
-      this.match("IDENTIFIER");
-      let progName = this.previous().lexeme;
-      this.match("COLON");
-
-      console.log("subprogram:", progName);
-      // let progExpr = this.program(progName);
-      let exprs = this.expressions(progName);
-      // if (progName !== null && !(this.check("IDENTIFIER") && this.peek(1).type === "SEMICOLON")) {
-      // console.error();
-      // } else {
-      this.consume("IDENTIFIER", `Unfinished program ${progName}`);
-      this.consume("SEMICOLON", `Unfinished program ${progName}`);
-      expr = new Expr.Program(progName, exprs);
-      // }
-      // end subprogram
-    } else {
-      // unary expression, not subprogram
-      expr = this.unary();
-    };
-    return expr;
-  }
-
-  unary() {
-    if (this.match("BANG")) {
-      console.log("Negated expression");
-      let operator = this.previous();
-      let right = this.unary();
-      return new Expr.Unary(operator, right);
-    } else {
-      return this.primary();
+    try {
+      while (!this.isAtEnd()) {
+        while (this.match("WHITESPACE", "COMMENT", "NEWLINE")) {
+        }
+        if (!this.isAtEnd())
+          exprs.push(this.primary());
+      }
+      return exprs;
+    } catch (error) {
+      return null;
     }
   }
+
+  // unary() {
+  // TODO: negated expressions, lex correctly first
+  // if (this.match("BANG")) {
+  //   console.log("Negated expression");
+  //   let operator = this.previous();
+  //   let right = this.unary();
+  //   return new Expr.Unary(operator, right);
+  // } else {
+  // return this.primary();
+  // }
+  // }
 
   primary() {
-    if (this.match("NULL")) return new Expr.Literal(null);
-    if (this.match("NUMBER", "STRING")) return new Expr.Literal(this.previous().literal);
-    if (this.match("IDENTIFIER")) return new Expr.Word(this.previous());
-    throw `ERROR: ${this.tokens[this.current]} `;
+    // if (this.match("SEMICOLON")) return new Expr.Literal(";");
+    // if (this.match("COLON")) return new Expr.Literal(":");
+
+    if (this.match("NULL")) {
+      return new Expr.Literal(null);
+    } else if (this.match("NUMBER", "STRING")) {
+      return new Expr.Literal(this.previous().literal);
+    } else if (this.match("WORD")) {
+      return new Expr.Word(this.previous());
+    } else {
+      let token = this.tokens[this.current];
+      this.error(token, `Unexpected token: ${this.tokens[this.current]} `);
+      // this.advance();
+    }
   }
 
   match(...types) {
@@ -74,6 +65,7 @@ class Parser {
   }
 
   consume(type, message) {
+    // TODO: implement with catch?
     if (this.check(type)) return this.advance();
     throw { token: this.peek(), message };
   }
@@ -87,15 +79,38 @@ class Parser {
     if (!this.isAtEnd()) this.current++;
     return this.previous();
   }
+
   isAtEnd() {
     return this.peek().type === "EOF";
   }
+
   peek(n = 0) {
-    if (this.current + n >= this.tokens.length) return this.tokens[-1];
-    return this.tokens[this.current + n];
+    let token;
+    if (this.current + n > this.tokens.length) {
+      token = this.tokens[this.tokens.length - 1];
+    } else {
+      token = this.tokens[this.current + n];
+    }
+    return token;
   }
+
   previous() {
     return this.tokens[this.current - 1];
+  }
+
+  error(token, message) {
+    this.vm.error(token, message);
+    return { token, message };
+  }
+
+  synchronise() {
+    this.advance();
+
+    while (!this.isAtEnd()) {
+      if (this.previous().type === "WHITESPACE") {
+        return;
+      }
+    }
   }
 }
 

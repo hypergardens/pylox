@@ -2,17 +2,9 @@
 
 - An ugly language that loves you <3
 
-program = expression*
+program = expression* EOF
 
-expression = unary | startlabel expression* endlabel
-startlabel = :word 
-endlabel = ;word 
-
-unary = ("!") unary
-      | primary
-
-primary = STRING | NUMBER | word | "null"
-
+unary = STRING | NUMBER | word | "null"
 
 
 ?jump ; C A B]
