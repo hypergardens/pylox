@@ -31,36 +31,8 @@ class Token {
 
   accept(visitor) {
     visitor[`visit${this.type}token`](this);
-    // switch (this.type) {
-    //   case "WORD":
-    //     visitor.visitWordToken(this);
-    //     break;
-    //   case "LABEL":
-    //     visitor.visitWordToken(this);
-    //     break;
-    //   case "STRING":
-    //     visitor.visitWordToken(this);
-    //     break;
-    //   case "NUMBER":
-    //     visitor.visitWordToken(this);
-    //     break;
-    //   case "NULL":
-    //     visitor.visitWordToken(this);
-    //     break;
-    //   case "WHITESPACE":
-    //     visitor.visitWordToken(this);
-    //     break;
-    //   case "NEWLINE":
-    //     visitor.visitWordToken(this);
-    //     break;
-    //   case "COMMENT":
-    //     visitor.visitWordToken(this);
-    //     break;
-    //   case "EOF":
-    //     visitor.visitWordToken(this);
-    //     break;
-    // }
   }
+
   toString() {
     return `${this.type} ${this.lexeme} ${this.literal} at ${this.yOff}`;
   }

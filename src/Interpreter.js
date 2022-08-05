@@ -1,4 +1,6 @@
 import { TokenTypes } from "./TokenTypes";
+import Token from "./Token";
+
 class Interpreter {
   constructor(vm) {
     TokenTypes.canVisitTokens(this);
@@ -12,14 +14,17 @@ class Interpreter {
     this.tokens = tokens;
   }
   interpret(program = null) {
+    let executed = false;
     try {
       for (let token of this.tokens) {
         if (program === null && token.programs.length === 0) {
           // console.log(`Accepting token |${token.programs}-->${token.lexeme}|`);
           token.accept(this);
+          executed = true;
         } else if (program !== null && token.programs.indexOf(program) !== -1) {
           // console.log(`Accepting token |${token.programs}-->${token.lexeme}|`);
           token.accept(this);
+          executed = true;
         } else {
           // console.log(`Skipping token |${token.programs}-->${token.lexeme}|`);
         }
@@ -32,6 +37,7 @@ class Interpreter {
         throw error;
       }
     }
+    return executed;
   }
   isIgnoring(label = null) {
     if (label === null) {
@@ -55,19 +61,83 @@ class Interpreter {
         this.checkInt(token, termA);
         this.checkStackSize(token, termA);
         termB = this.top(token, termA);
-        console.log(`term B ${termB}`);
+        termB = this.delete(token, termA);
         this.stack.push(termB);
         break;
+
+      case 'exec':
+        this.checkStackSize(token, 1);
+        termA = this.stack.pop();
+        this.visitWORDtoken({ lexeme: termA });
+        break;
+
+      case '?exec':
+        this.checkStackSize(token, 3);
+        termA = this.stack.pop();
+        termB = this.stack.pop();
+        termC = this.stack.pop();
+        if (termA !== 0) {
+          // this.print(`?exec : ${termB}`);
+          this.visitWORDtoken({ lexeme: termB });
+        } else {
+          // this.print(`?exec : ${termC}`);
+          this.visitWORDtoken({ lexeme: termC });
+        }
+        break;
+
+      case 'print':
+        this.checkStackSize(token, 1);
+        termA = this.stack.pop();
+        this.print(termA);
+        break;
+
+      case 'del':
+        this.checkStackSize(token, 1);
+        termA = this.stack.pop();
+        this.checkStackSize(token, termA);
+        termB = this.delete(token, termA);
+        break;
+
+      case 'put':
+        this.checkStackSize(token, 2);
+        termA = this.stack.pop();
+        termB = this.stack.pop();
+        this.place(token, termA, termB);
+        // termB = this.delete(token, termA);
+        break;
+
+      case 'copy':
+        this.checkStackSize(token, 1);
+        termA = this.stack.pop();
+        this.checkInt(token, termA);
+        this.checkStackSize(token, termA);
+        termB = this.top(token, termA);
+        this.stack.push(termB);
+        break;
+
       case 'dup':
         this.checkStackSize(token, 1);
         let value = this.stack.pop();
         this.stack.push(value, value);
         break;
 
+      case '>':
+        this.checkStackSize(token, 2);
+        termA = this.stack.pop();
+        termB = this.stack.pop();
+        this.checkNumber(token, termA);
+        this.checkNumber(token, termB);
+        if (termA > termB)
+          this.stack.push(1);
+        else
+          this.stack.push(0);
+        break;
+
       case '+':
         this.checkStackSize(token, 2);
         termA = this.stack.pop();
         termB = this.stack.pop();
+        // this.print(`${termA} + ${termB} = ${termA + termB}`);
         this.stack.push(termA + termB);
         break;
 
@@ -75,6 +145,8 @@ class Interpreter {
         this.checkStackSize(token, 2);
         termA = this.stack.pop();
         termB = this.stack.pop();
+        this.checkNumber(token, termA);
+        this.checkNumber(token, termB);
         this.stack.push(termA * termB);
         break;
 
@@ -86,7 +158,10 @@ class Interpreter {
 
       default:
         // console.log(`Executing ${word} program`);
-        this.interpret(word);
+        let executed = this.interpret(word);
+        if (!executed) {
+          this.vm.error(token, `Word not found.`);
+        }
         break;
     }
     return this.stack;
@@ -140,8 +215,30 @@ class Interpreter {
     }
   }
 
-  pluck(n) {
+  delete(token, n) {
+    if (n < 0) {
+      this.checkStackSize(token, Math.abs(n));
+      return this.stack.splice(-n - 1, 1);
+    } else if (n >= 0) {
+      this.checkStackSize(token, n + 1);
+      return this.stack.splice(this.stack.length - n - 1, 1);
+    }
+  }
 
+  place(token, element, where) {
+    this.checkStackSize(token, where);
+    // this.print(where);
+    this.checkInt(token, where);
+    if (where >= 0) {
+      this.stack.splice(this.stack.length - where, 0, element);
+    } else {
+      this.stack.splice(-1 - where, 0, element);
+
+    }
+  }
+
+  print(msg) {
+    this.vm.consoleText.push(msg);
   }
 
   checkBools(token, n = 0) {

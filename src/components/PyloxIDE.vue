@@ -24,7 +24,21 @@ export default {
     },
   },
   mounted: function () {
-    this.code = subProgTest
+    this.code = `
+count:
+dup 1 + dup
+10 >
+1 "count" put
+2 "done" put
+?exec
+print
+count;
+
+done:
+done;
+0 count 
+
+`
     console.log(this.pylox.parse(this.code))
     this.runCode()
     this.$emit('input')
@@ -43,6 +57,7 @@ e" 2 +
 pi: 3.14 pi;
 2 pi *`
 let subProgTest = `0 a: 1 b: 2 b; 3 a; 4 a b`
+// [2,3,2,1,4,0
 
 let pylox = new Pylox()
 pylox.run(subProgTest)
