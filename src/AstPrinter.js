@@ -37,10 +37,6 @@ class AstPrinter extends TreeVisitor {
   visitWordToken(token) {
     return this.parenthesise(token.lexeme);
   }
-  // visitProgramExpr(expr) {
-  //   // if (expr.token == null) return 'NULL';
-  //   return this.parenthesise(`${expr.name}[`, expr.expressions, `]${expr.name}`);
-  // }
 }
 
 export default AstPrinter; 
