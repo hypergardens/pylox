@@ -2,10 +2,11 @@
 
 - An ugly language that loves you <3
 
-program = expression* EOF
+program = token* EOF
 
-unary = STRING | NUMBER | word | "null"
-
+token   = word | label | | literal  
+literal = NUMBER | STRING | "null"  
+label   = CHAR* (: | ;)  
 
 ?jump ; C A B]
 jump ; L]
