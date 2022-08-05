@@ -14,21 +14,21 @@ export default {
   methods: {
     inputtedCode(e) {
       // this.$root.$emit('input', e.target.innerHTML)
-      this.interpret()
+      this.runCode()
     },
-    interpret() {
-      // this.pylox = new Pylox()
-      // this.pylox.interpret(this.code)
-      // this.stackText = `[${this.pylox.interpreter.stack.reverse().join(',')}`
-      // this.consoleText = `${this.pylox.consoleText}`
+    runCode() {
+      this.pylox = new Pylox()
+      this.pylox.run(this.code)
+      this.stackText = `[${this.pylox.interpreter.stack.reverse().join(',')}`
+      this.consoleText = `${this.pylox.consoleText}`
     },
   },
   mounted: function () {
-    this.code = prog
-    // console.log(this.pylox.parse(this.code))
-    // this.interpret()
-    // this.$emit('input')
-    // console.log('mounted')
+    this.code = subProgTest
+    console.log(this.pylox.parse(this.code))
+    this.runCode()
+    this.$emit('input')
+    console.log('mounted')
   },
 }
 
@@ -42,9 +42,10 @@ let prog = `
 e" 2 +
 pi: 3.14 pi;
 2 pi *`
+let subProgTest = `0 a: 1 b: 2 b; 3 a; 4 a b`
 
 let pylox = new Pylox()
-pylox.interpret(prog)
+pylox.run(subProgTest)
 // let tokens = pylox.tokens(`
 // @ 4
 // sq1:

@@ -31,7 +31,7 @@ class Lexer {
         this.number();
       } else {
         // - :abc
-        this.word();
+        this.wordOrLabel();
       }
     } else if (char === `/` && this.match(`/`)) {
       this.comment();
@@ -47,28 +47,28 @@ class Lexer {
     } else if (this.isDigit(char)) {
       this.number();
     } else if (this.isCharacter(char)) {
-      this.word();
+      this.wordOrLabel();
     } else if (this.isWhitespace(char)) {
       this.whitespace();
     } else {
-      this.word();
+      // this.word();
       this.vm.error(this.yOff, `Unexpected character ${char}.`);
     }
   }
 
-  word() {
+  wordOrLabel() {
     while (this.isAlphaNumeric(this.peek()) && !this.isAtEnd()) this.advance();
     let type, text;
-    if (this.match(":")) {
+    if (this.peek(-1) === ":") {
       // start label abc:
       text = this.source.slice(this.start, this.current);
       this.addToken("LABEL", true);
-      console.log(`start-label: ${text}`);
-    } else if (this.match(";")) {
+      // console.log(`start-label: ${text}`);
+    } else if (this.peek(-1) === ";") {
       // end label abc;
       text = this.source.slice(this.start, this.current);
       this.addToken("LABEL", false);
-      console.log(`end-label: ${text}`);
+      // console.log(`end-label: ${text}`);
     } else {
       // normal word abc
       let map = {
@@ -148,7 +148,7 @@ class Lexer {
   }
 
   isCharacter(char) {
-    return char !== "" && ";:".indexOf(char) === -1 && !this.isWhitespace(char) && !this.isDigit(char);
+    return char !== "" && !this.isWhitespace(char) && !this.isDigit(char);
     // return "/:;_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".indexOf(char) !== -1;
   }
 

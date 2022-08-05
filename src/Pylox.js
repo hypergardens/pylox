@@ -40,13 +40,12 @@ class Pylox {
     return this.parser.parse(tokens);
   }
 
-  interpret(source) {
+  run(source) {
     // TODO: figure out if a separate interpreter refresh is necessary
     this.interpreter = new Interpreter(this);
-    let expressions = this.parse(source);
-    console.log(`expressions`);
-    console.log(expressions);
-    return this.interpreter.interpret(expressions);
+    let tokens = this.parse(source);
+    this.interpreter.loadTokens(tokens);
+    return this.interpreter.interpret();
   }
 }
 

@@ -1,23 +1,29 @@
+import { TokenTypes } from "./TokenTypes";
 class Interpreter {
   constructor(vm) {
+    TokenTypes.canVisitTokens(this);
     this.vm = vm;
 
     this.tokens = [];
     this.stack = [];
-    this.execStack = [{ ptr: 0, label: "main" }];
     this.ignoring = {};
   }
-  interpret(tokens) {
+  loadTokens(tokens) {
     this.tokens = tokens;
+  }
+  interpret(program = null) {
     try {
-      while (this.ptr() < this.tokens.length) {
-
-        let token = this.tokens[this.ptr()];
-        // TODO: fix token accept
-        // console.log(token.accept(this));
-        this.advance();
+      for (let token of this.tokens) {
+        if (program === null && token.programs.length === 0) {
+          // console.log(`Accepting token |${token.programs}-->${token.lexeme}|`);
+          token.accept(this);
+        } else if (program !== null && token.programs.indexOf(program) !== -1) {
+          // console.log(`Accepting token |${token.programs}-->${token.lexeme}|`);
+          token.accept(this);
+        } else {
+          // console.log(`Skipping token |${token.programs}-->${token.lexeme}|`);
+        }
       }
-
     } catch (error) {
       if (error.token) {
         this.vm.error(error.token, error.message);
@@ -38,18 +44,9 @@ class Interpreter {
       return (this.ignoring[label]);
     }
   }
-  visitLabelExpr(expr) {
-    // this.stack.push(expr.value);
-    this.ignoring[expr.token.lexeme] = expr.value;
-    return this.stack;
-  }
-  visitLiteralExpr(expr) {
-    this.stack.push(expr.value);
-    return this.stack;
-  }
-  visitWordExpr(expr) {
-    let token = expr.token;
-    let word = expr.token.lexeme;
+
+  visitWORDtoken(token) {
+    let word = token.lexeme;
     let termA, termB, termC;
     switch (word) {
       case '@':
@@ -88,36 +85,50 @@ class Interpreter {
         break;
 
       default:
-        if (word[word.length - 1] === `:`) {
-          let label = word.slice(0, word.length - 1);
-          // label:
-          if (this.execCell().label !== label) {
-            console.log(`new, label ${label}, ignoring`);
-            this.ignoring[label] = true;
-          }
-          // exec till label;
-        } else if (word[word.length - 1] === `;`) {
-          let label = word.slice(0, word.length - 1);
-          console.log(`finished label ${label} ${this.isIgnoring(label)}`);
-
-        } else {
-          this.stack.push(`${word}$`);
-        }
+        // console.log(`Executing ${word} program`);
+        this.interpret(word);
         break;
     }
     return this.stack;
   }
-  execCell() {
-    return this.execStack[0];
-  }
-  ptr() {
-    return this.execCell().ptr;
-  }
+  visitLABELtoken(token) {
+    // this.stack.push(token.value);
+    // let lexeme = token.lexeme;
+    // if (lexeme[lexeme.length - 1] === `:`) {
+    //   let label = lexeme.slice(0, lexeme.length - 1);
+    //   // label:
+    //   if (this.execCell().label !== label) {
+    //     console.log(`new, label ${label}, ignoring`);
+    //     this.ignoring[label] = true;
+    //   }
+    //   // exec till label;
+    // } else if (lexeme[lexeme.length - 1] === `;`) {
+    //   let label = lexeme.slice(0, lexeme.length - 1);
+    //   console.log(`finished label ${label} ${this.isIgnoring(label)}`);
 
-  advance() {
-    this.execCell().ptr++;
-    return;
+    //   this.ignoring[label] = false;
+    // } else {
+    //   this.stack.push(`${lexeme}$`);
+    //   console.error("I don't know what's going on but this is where it is.");
+    // }
+    // return this.stack;
   }
+  visitSTRINGtoken(token) {
+    this.stack.push(token.literal);
+    return this.stack;
+  }
+  visitNUMBERtoken(token) {
+    this.stack.push(token.literal);
+    return this.stack;
+  }
+  visitNULLtoken(token) {
+    this.stack.push(token.literal);
+    return this.stack;
+  }
+  visitWHITESPACEtoken(token) { }
+  visitNEWLINEtoken(token) { }
+  visitCOMMENTtoken(token) { }
+  visitEOFtoken(token) { }
 
   top(token, n) {
     if (n < 0) {

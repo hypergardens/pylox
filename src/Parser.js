@@ -6,54 +6,60 @@ class Parser {
     this.vm = vm;
     this.current = 0;
     this.tokens = [];
-    this.programs = {};
+    this.programs = [];
   }
 
   parse(tokens) {
     this.tokens = tokens;
-    let exprs = [];
-    try {
-      while (!this.isAtEnd()) {
-        // ((WHITESPACE | COMMENT | NEWLINE)* primary)* EOF
-        if (!this.isAtEnd()) {
-          let getExpr = this.parseToken();
-          if (getExpr) {
-            exprs.push(getExpr);
-          }
-        }
-      }
-      return exprs;
-    } catch (error) {
-      return null;
+    for (let token of tokens) {
+      this.parseToken();
     }
+    return tokens;
   }
 
   parseToken() {
-    // if (this.match("SEMICOLON")) return new Expr.Literal(";");
-    // if (this.match("COLON")) return new Expr.Literal(":");
+    // set previously accumulated programs
+    this.peek().setPrograms(this.programs);
+    // console.log(`${this.peek().programs}-->${this.peek().lexeme}`);
+    // console.log(this.peek());
 
-    if (this.match("WHITESPACE", "COMMENT", "NEWLINE", "COMMENT")) {
+    if (this.match(`WORD`, `STRING`, `NUMBER`, `NULL`,
+      `WHITESPACE`, `NEWLINE`, `COMMENT`, `EOF`)) {
       return this.previous();
-    } else if (this.match("NULL")) {
-      // null
-      return this.previous();
-    } else if (this.match("NUMBER", "STRING")) {
-      // 123 "abc"
-      return this.previous();
-    } else if (this.match("LABEL")) {
-      // abc: abc;
-      console.log(`Matched label ${this.previous().token}`);
-
-      return this.previous();
-    } else if (this.match("WORD")) {
-      // def
-      return this.previous();
+    } else if (this.match(`LABEL`)) {
+      return this.handleLabel();
     } else {
       // ???
       let token = this.peek();
-      this.error(token, `Unexpected token: ${this.tokens[this.current]} `);
+      this.error(token, `Parser: unexpected token: ${this.tokens[this.current]} `);
       // this.advance();
     }
+  }
+
+  handleLabel() {
+    // abc: abc;
+    // take previous token as label
+    let token = this.previous();
+    let lexeme = token.lexeme;
+
+    if (lexeme[lexeme.length - 1] === `:`) {
+      // abc:
+      // add program to array
+      let label = lexeme.slice(0, lexeme.length - 1);
+      this.programs.push(label);
+      // exec till label;
+    } else if (lexeme[lexeme.length - 1] === `;`) {
+      // remove program from array
+      let label = lexeme.slice(0, lexeme.length - 1);
+      if (this.programs.indexOf(label) !== -1) {
+        this.programs.splice(this.programs.indexOf(label), 1);
+      } else {
+        this.vm.error(token, "Label finished without beginning.");
+      }
+    } else {
+      this.vm.error(token, "I don't know what's going on but this is where it is.");
+    }
+    return token;
   }
 
   match(...types) {
@@ -74,7 +80,8 @@ class Parser {
   }
 
   check(type) {
-    if (this.isAtEnd()) return false;
+    // TODO: hack?
+    if (this.isAtEnd() && this.peek().type !== "EOF") return false;
     return this.peek().type === type;
   }
 
