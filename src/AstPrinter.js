@@ -1,5 +1,4 @@
 import TreeVisitor from './TreeVisitor';
-import { Expr } from './Expr';
 import Token from './Token';
 class AstPrinter extends TreeVisitor {
   constructor() {
@@ -19,33 +18,24 @@ class AstPrinter extends TreeVisitor {
       } else if (typeof arg === 'string' || typeof arg === 'number') {
         // arg is string
         strArr.push(arg);
-      } else if (arg instanceof Expr.Base) {
-        // arg is expr
-        strArr.push(`(`, arg.accept(this), `)`);
       }
       else if (arg instanceof Token) {
         // arg is token
         // HACK: should probably use a proper expression
         strArr.push(`${arg.lexeme}`);
-        // strArr.push(`'${arg.lexeme}'{${arg.line},${arg.col}}`);
       }
     }
     return strArr.join('');
   }
 
-  visitUnaryExpr(expr) {
-    // console.log('Unary parenth');
-    return this.parenthesise("(", expr.operator, expr.right, ")");
+  visitLiteralToken(token) {
+    if (token.value == null) return 'NULL';
+    // console.log(`Value ${token.value}`);
+    return this.parenthesise(token.value);
   }
 
-  visitLiteralExpr(expr) {
-    if (expr.value == null) return 'NULL';
-    // console.log(`Value ${expr.value}`);
-    return this.parenthesise(expr.value);
-  }
-
-  visitWordExpr(expr) {
-    return this.parenthesise(expr.token);
+  visitWordToken(token) {
+    return this.parenthesise(token.lexeme);
   }
   // visitProgramExpr(expr) {
   //   // if (expr.token == null) return 'NULL';

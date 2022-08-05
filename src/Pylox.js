@@ -1,13 +1,11 @@
-import { Expr } from "./Expr";
-import Token from "./Token";
-import Scanner from "./Scanner";
+import Lexer from "./Lexer";
 import Parser from "./Parser";
 import Interpreter from "./Interpreter";
 
 class Pylox {
   constructor() {
     this.hadError = false;
-    this.scanner = new Scanner(this);
+    this.lexer = new Lexer(this);
     this.parser = new Parser(this);
     this.interpreter = new Interpreter(this);
     this.stack = [];
@@ -24,15 +22,15 @@ class Pylox {
 
   error(token, message) {
     if (token.type === "EOF") {
-      this.report(token.line, ` at end`, message);
+      this.report(token.yOff, ` at end`, message);
     } else {
-      this.report(token.line, ` at '${token.lexeme}'`, message);
+      this.report(token.yOff, ` at '${token.lexeme}'`, message);
     }
   }
 
   tokenise(source) {
-    this.scanner = new Scanner(this);
-    return this.scanner.scanTokens(source);
+    this.lexer = new Lexer(this);
+    return this.lexer.scanTokens(source);
   }
 
   parse(source) {
@@ -46,6 +44,8 @@ class Pylox {
     // TODO: figure out if a separate interpreter refresh is necessary
     this.interpreter = new Interpreter(this);
     let expressions = this.parse(source);
+    console.log(`expressions`);
+    console.log(expressions);
     return this.interpreter.interpret(expressions);
   }
 }

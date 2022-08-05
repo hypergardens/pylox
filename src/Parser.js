@@ -15,15 +15,11 @@ class Parser {
     try {
       while (!this.isAtEnd()) {
         // ((WHITESPACE | COMMENT | NEWLINE)* primary)* EOF
-        while (this.match("WHITESPACE", "COMMENT", "NEWLINE")) {
-        }
         if (!this.isAtEnd()) {
-          let getExpr = this.primary();
+          let getExpr = this.parseToken();
           if (getExpr) {
             exprs.push(getExpr);
           }
-        }
-        while (this.match("WHITESPACE", "COMMENT", "NEWLINE")) {
         }
       }
       return exprs;
@@ -32,24 +28,26 @@ class Parser {
     }
   }
 
-  primary() {
+  parseToken() {
     // if (this.match("SEMICOLON")) return new Expr.Literal(";");
     // if (this.match("COLON")) return new Expr.Literal(":");
 
-    if (this.match("NULL")) {
+    if (this.match("WHITESPACE", "COMMENT", "NEWLINE", "COMMENT")) {
+      return this.previous();
+    } else if (this.match("NULL")) {
       // null
-      return new Expr.Literal(null);
+      return this.previous();
     } else if (this.match("NUMBER", "STRING")) {
       // 123 "abc"
-      return new Expr.Literal(this.previous().literal);
+      return this.previous();
     } else if (this.match("LABEL")) {
       // abc: abc;
       console.log(`Matched label ${this.previous().token}`);
-      this.advance();
+
+      return this.previous();
     } else if (this.match("WORD")) {
       // def
-      let word = this.previous();
-      return new Expr.Word(word);
+      return this.previous();
     } else {
       // ???
       let token = this.peek();

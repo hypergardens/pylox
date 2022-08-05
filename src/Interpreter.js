@@ -1,22 +1,20 @@
-import TreeVisitor from "./TreeVisitor";
-
-class Interpreter extends TreeVisitor {
+class Interpreter {
   constructor(vm) {
-    super();
     this.vm = vm;
 
-    this.expressions = [];
+    this.tokens = [];
     this.stack = [];
     this.execStack = [{ ptr: 0, label: "main" }];
     this.ignoring = {};
   }
-  interpret(expressions) {
-    this.expressions = expressions;
+  interpret(tokens) {
+    this.tokens = tokens;
     try {
-      while (this.ptr() < this.expressions.length) {
+      while (this.ptr() < this.tokens.length) {
 
-        let expr = this.expressions[this.ptr()];
-        console.log(expr.accept(this));
+        let token = this.tokens[this.ptr()];
+        // TODO: fix token accept
+        // console.log(token.accept(this));
         this.advance();
       }
 

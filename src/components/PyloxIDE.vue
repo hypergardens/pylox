@@ -17,22 +17,13 @@ export default {
       this.interpret()
     },
     interpret() {
-      this.pylox = new Pylox()
-      this.pylox.interpret(this.code)
-      this.stackText = `[${this.pylox.interpreter.stack.reverse().join(',')}`
-      this.consoleText = `${this.pylox.consoleText}`
+      // this.pylox = new Pylox()
+      // this.pylox.interpret(this.code)
+      // this.stackText = `[${this.pylox.interpreter.stack.reverse().join(',')}`
+      // this.consoleText = `${this.pylox.consoleText}`
     },
   },
   mounted: function () {
-    let minusTest = `-1 - 2 --3 - - 4 -2a - b`
-    let preBang = `!1 ! 2 !!3 ! ! 4 !a ! b !2c`
-    let postBang = `1! 2 ! 3!! ! 4 ! a! b ! 2c! `
-    let tildeTest = `2 2 +`
-    let prog = `
-sq:
-dup *
-sq;
-4 sq`
     this.code = prog
     // console.log(this.pylox.parse(this.code))
     // this.interpret()
@@ -41,6 +32,19 @@ sq;
   },
 }
 
+let minusTest = `-1 - 2 --3 - - 4 -2a - b`
+let preBang = `!1 ! 2 !!3 ! ! 4 !a ! b !2c`
+let postBang = `1! 2 ! 3!! ! 4 ! a! b ! 2c! `
+let tildeTest = `2 2 +`
+let prog = `
+// comm ?
+"appl
+e" 2 +
+pi: 3.14 pi;
+2 pi *`
+
+let pylox = new Pylox()
+pylox.interpret(prog)
 // let tokens = pylox.tokens(`
 // @ 4
 // sq1:

@@ -1,11 +1,10 @@
 import Token from "./Token";
 
-class Scanner {
+class Lexer {
   constructor(vm) {
     this.source = "";
     this.start = 0;
     this.current = 0;
-    this.line = 0;
     this.xOff = 0;
     this.yOff = 0;
     this.tokens = [];
@@ -18,7 +17,7 @@ class Scanner {
       this.start = this.current;
       this.scanToken();
     }
-    this.tokens.push(new Token("EOF", "", null, this.line, this.xOff, this.yOff));
+    this.tokens.push(new Token("EOF", "", null, this.xOff, this.yOff));
     return this.tokens;
   }
 
@@ -35,14 +34,7 @@ class Scanner {
         this.word();
       }
     } else if (char === `/` && this.match(`/`)) {
-      // this.addToken("BANG");
       this.comment();
-      // } else if (char === `!`) {
-      // if (this.isCharacter(this.peek())) {
-
-      // } else {
-      //   this.word();
-      // }
     } else if (char === `"`) {
       this.string();
     } else if (char === `~`) {
@@ -60,7 +52,7 @@ class Scanner {
       this.whitespace();
     } else {
       this.word();
-      // this.vm.error(this.line, `Unexpected character ${char}.`);
+      this.vm.error(this.yOff, `Unexpected character ${char}.`);
     }
   }
 
@@ -110,21 +102,8 @@ class Scanner {
     while (this.peek() != '\n' && !this.isAtEnd()) {
       this.advance();
     }
-    this.addToken("COMMENT", this.source.slice(this.start, this.current));
+    this.addToken("COMMENT");
   }
-  // stackPtr() {
-  //   // consume digits
-  //   while (this.isDigit(this.peek())) this.advance();
-
-  //   if (this.peek() == "." && this.isDigit(this.peek(1))) {
-  //     // consume "."
-  //     this.advance();
-
-  //     // consume fractional part
-  //     while (this.isDigit(this.peek())) this.advance();
-  //   }
-  //   this.addToken("NUMBER", Number(this.source.slice(this.start, this.current)));
-  // }
 
   string() {
     // TODO: unescape \" like characters
@@ -137,7 +116,7 @@ class Scanner {
     }
 
     if (this.isAtEnd()) {
-      this.vm.error(this.line, "Unterminated string.");
+      this.vm.error(this.yOff, "Unterminated string.");
     }
 
     // the closing "
@@ -153,7 +132,7 @@ class Scanner {
       this.advance();
     }
     let value = this.source.slice(this.start, this.current);
-    this.addToken("WHITESPACE", value);
+    this.addToken("WHITESPACE");
   }
 
   match(expected) {
@@ -186,12 +165,11 @@ class Scanner {
 
   addToken(type, literal = null) {
     let text = this.source.slice(this.start, this.current);
-    this.tokens.push(new Token(type, text, literal, this.line, this.xOff, this.yOff));
+    this.tokens.push(new Token(type, text, literal, this.xOff, this.yOff));
     this.xOff += text.length;
   }
 
   backToLeft() {
-    this.line++;
     this.yOff++;
     this.xOff = 0;
   }
@@ -208,4 +186,4 @@ class Scanner {
   }
 }
 
-export default Scanner;
+export default Lexer;
