@@ -29,14 +29,13 @@ export default {
   },
   mounted: function () {
     this.code = `
-count:
-1 + dup
-"count"
-"print"
-10 >
-count;
+    double:
+    2 *
+    double;
 
-0 count
+    pi: 3.14 pi;
+
+    pi double
 `
     console.log(this.pylox.parse(this.code))
     this.runCode()
