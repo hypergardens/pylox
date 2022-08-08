@@ -28,14 +28,13 @@ export default {
     },
   },
   mounted: function () {
-    this.code = `
-    double:
-    2 *
-    double;
+    this.code = `double:
+2 *
+double;
 
-    pi: 3.14 pi;
+pi: 3.14 pi;
 
-    pi double
+pi double
 `
     console.log(this.pylox.parse(this.code))
     this.runCode()
