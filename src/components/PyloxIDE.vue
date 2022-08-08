@@ -19,12 +19,38 @@ export default {
     runCode() {
       this.pylox = new Pylox()
       this.pylox.run(this.code)
-      this.stackText = `[${this.pylox.interpreter.stack.reverse().join(',')}`
+      this.stackText = `[${this.pylox.interpreter.stack
+        .slice()
+        .reverse()
+        .join(',')}`
       this.consoleText = `${this.pylox.consoleText}`
+      console.log(this.pylox.interpreter.stack)
     },
   },
   mounted: function () {
     this.code = `
+count:
+1 + dup
+"count"
+"print"
+10 >
+count;
+
+0 count
+`
+    console.log(this.pylox.parse(this.code))
+    this.runCode()
+    console.log(this.debugText)
+    // this.$emit('input')
+    // console.log('mounted')
+  },
+}
+
+let minusTest = `-1 - 2 --3 - - 4 -2a - b`
+let preBang = `!1 ! 2 !!3 ! ! 4 !a ! b !2c`
+let postBang = `1! 2 ! 3!! ! 4 ! a! b ! 2c! `
+let tildeTest = `2 2 +`
+let prog = `
 count:
 dup 1 + dup
 10 >
@@ -37,30 +63,12 @@ count;
 done:
 done;
 0 count 
-
 `
-    console.log(this.pylox.parse(this.code))
-    this.runCode()
-    this.$emit('input')
-    console.log('mounted')
-  },
-}
-
-let minusTest = `-1 - 2 --3 - - 4 -2a - b`
-let preBang = `!1 ! 2 !!3 ! ! 4 !a ! b !2c`
-let postBang = `1! 2 ! 3!! ! 4 ! a! b ! 2c! `
-let tildeTest = `2 2 +`
-let prog = `
-// comm ?
-"appl
-e" 2 +
-pi: 3.14 pi;
-2 pi *`
 let subProgTest = `0 a: 1 b: 2 b; 3 a; 4 a b`
 // [2,3,2,1,4,0
 
-let pylox = new Pylox()
-pylox.run(subProgTest)
+// let pylox = new Pylox()
+// pylox.run(subProgTest)
 // let tokens = pylox.tokens(`
 // @ 4
 // sq1:
@@ -79,22 +87,32 @@ pylox.run(subProgTest)
 </script>
 <template>
   <div class="wrapper">
+    <div class="deb code-text">
+      <p class="debug-output" v-for="output in pylox.interpreter.execOutput">
+        <pre>{{ output }}</pre>
+      </p>
+    </div>
     <textarea
       spellcheck="false"
       class="code-area code-text aside"
       v-model="code"
       @input.prevent="inputtedCode"
     ></textarea>
-    <aside class="content stack-view code-text">
+    <div class="content stack-view code-text">
       {{ stackText }}
-    </aside>
-    <footer class="footer console-view code-text">
+    </div>
+    <div class="footer console-view code-text">
       <span class="">Console: {{ consoleText }}</span>
-    </footer>
+    </div>
   </div>
 </template>
 
 <style scoped>
+.debug-output {
+  line-height: 16px;
+  padding: 0px;
+  margin: 0px;
+}
 .code-text {
   font-size: 16px;
   line-height: 24px;
@@ -105,12 +123,12 @@ pylox.run(subProgTest)
 }
 .wrapper {
   display: grid;
-  grid-template-columns: 300px 600px;
+  grid-template-columns: 600px 300px 500px;
 
   grid-template-rows: 300px 300px;
   grid-template-areas:
-    'aside content'
-    'footer footer';
+    'deb aside content'
+    'deb footer footer';
   grid-gap: 15px;
 }
 .code-area {

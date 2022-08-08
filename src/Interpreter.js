@@ -9,21 +9,27 @@ class Interpreter {
     this.tokens = [];
     this.stack = [];
     this.ignoring = {};
+    this.ptr = 0;
+    this.execOutput = [];
   }
   loadTokens(tokens) {
-    this.tokens = tokens;
+    this.tokens.push(...tokens);
   }
   interpret(program = null) {
     let executed = false;
     try {
-      for (let token of this.tokens) {
-        if (program === null && token.programs.length === 0) {
+      for (let i = 0; i < this.tokens.length; i++) {
+        let token = this.tokens[i];
+        if (program === null && token.programs.length === 0 ||
+          program !== null && token.programs.indexOf(program) !== -1) {
+          // main program or specific program token
+
           // console.log(`Accepting token |${token.programs}-->${token.lexeme}|`);
+          this.ptr = i;
           token.accept(this);
-          executed = true;
-        } else if (program !== null && token.programs.indexOf(program) !== -1) {
-          // console.log(`Accepting token |${token.programs}-->${token.lexeme}|`);
-          token.accept(this);
+          if (["WHITESPACE", "NEWLINE", "LABEL"].indexOf(token.type) === -1) {
+            this.execOutput.push(`${token.lexeme.padStart(8, " ")} → [${this.stack.slice().reverse().toString().padEnd(10, " ")}`);
+          }
           executed = true;
         } else {
           // console.log(`Skipping token |${token.programs}-->${token.lexeme}|`);
@@ -133,6 +139,66 @@ class Interpreter {
           this.stack.push(0);
         break;
 
+      case '>=':
+        this.checkStackSize(token, 2);
+        termA = this.stack.pop();
+        termB = this.stack.pop();
+        this.checkNumber(token, termA);
+        this.checkNumber(token, termB);
+        if (termA >= termB)
+          this.stack.push(1);
+        else
+          this.stack.push(0);
+        break;
+
+      case '<':
+        this.checkStackSize(token, 2);
+        termA = this.stack.pop();
+        termB = this.stack.pop();
+        this.checkNumber(token, termA);
+        this.checkNumber(token, termB);
+        if (termA < termB)
+          this.stack.push(1);
+        else
+          this.stack.push(0);
+        break;
+
+      case '<=':
+        this.checkStackSize(token, 2);
+        termA = this.stack.pop();
+        termB = this.stack.pop();
+        this.checkNumber(token, termA);
+        this.checkNumber(token, termB);
+        if (termA <= termB)
+          this.stack.push(1);
+        else
+          this.stack.push(0);
+        break;
+
+      case '==':
+        this.checkStackSize(token, 2);
+        termA = this.stack.pop();
+        termB = this.stack.pop();
+        this.checkNumber(token, termA);
+        this.checkNumber(token, termB);
+        if (termA === termB)
+          this.stack.push(1);
+        else
+          this.stack.push(0);
+        break;
+
+      case '!=':
+        this.checkStackSize(token, 2);
+        termA = this.stack.pop();
+        termB = this.stack.pop();
+        this.checkNumber(token, termA);
+        this.checkNumber(token, termB);
+        if (termA !== termB)
+          this.stack.push(1);
+        else
+          this.stack.push(0);
+        break;
+
       case '+':
         this.checkStackSize(token, 2);
         termA = this.stack.pop();
@@ -150,6 +216,24 @@ class Interpreter {
         this.stack.push(termA * termB);
         break;
 
+      case '/':
+        this.checkStackSize(token, 2);
+        termA = this.stack.pop();
+        termB = this.stack.pop();
+        this.checkNumber(token, termA);
+        this.checkNumber(token, termB);
+        this.stack.push(termA / termB);
+        break;
+
+      case '-':
+        this.checkStackSize(token, 2);
+        termA = this.stack.pop();
+        termB = this.stack.pop();
+        this.checkNumber(token, termA);
+        this.checkNumber(token, termB);
+        this.stack.push(termA - termB);
+        break;
+
       case '!':
         this.checkStackSize(token, 1);
         this.checkBools(token, 1);
@@ -158,6 +242,9 @@ class Interpreter {
 
       default:
         // console.log(`Executing ${word} program`);
+        this.execOutput.push(`____`);
+        this.execOutput.push(`${token.lexeme}: exec`);
+
         let executed = this.interpret(word);
         if (!executed) {
           this.vm.error(token, `Word not found.`);
@@ -167,36 +254,19 @@ class Interpreter {
     return this.stack;
   }
   visitLABELtoken(token) {
-    // this.stack.push(token.value);
-    // let lexeme = token.lexeme;
-    // if (lexeme[lexeme.length - 1] === `:`) {
-    //   let label = lexeme.slice(0, lexeme.length - 1);
-    //   // label:
-    //   if (this.execCell().label !== label) {
-    //     console.log(`new, label ${label}, ignoring`);
-    //     this.ignoring[label] = true;
-    //   }
-    //   // exec till label;
-    // } else if (lexeme[lexeme.length - 1] === `;`) {
-    //   let label = lexeme.slice(0, lexeme.length - 1);
-    //   console.log(`finished label ${label} ${this.isIgnoring(label)}`);
-
-    //   this.ignoring[label] = false;
-    // } else {
-    //   this.stack.push(`${lexeme}$`);
-    //   console.error("I don't know what's going on but this is where it is.");
-    // }
-    // return this.stack;
   }
   visitSTRINGtoken(token) {
+    // this.place(token, token.literal, 0);
     this.stack.push(token.literal);
     return this.stack;
   }
   visitNUMBERtoken(token) {
+    // this.place(token, token.literal, 0);
     this.stack.push(token.literal);
     return this.stack;
   }
   visitNULLtoken(token) {
+    // this.place(token, token.literal, 0);
     this.stack.push(token.literal);
     return this.stack;
   }
