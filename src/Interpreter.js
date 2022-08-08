@@ -82,7 +82,7 @@ class Interpreter {
         termA = this.stack.pop();
         termB = this.stack.pop();
         termC = this.stack.pop();
-        if (termA !== 0) {
+        if (termA === 0) {
           // this.print(`?exec : ${termB}`);
           this.visitWORDtoken({ lexeme: termB });
         } else {
