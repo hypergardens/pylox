@@ -28,14 +28,13 @@ export default {
     },
   },
   mounted: function () {
-    this.code = `double:
-2 *
-double;
+    this.code = `
 
-pi: 3.14 pi;
+inc:
+1 +
+inc;
 
-pi double
-`
+10 inc`;
     console.log(this.pylox.parse(this.code))
     this.runCode()
     console.log(this.debugText)
@@ -47,21 +46,16 @@ pi double
 let minusTest = `-1 - 2 --3 - - 4 -2a - b`
 let preBang = `!1 ! 2 !!3 ! ! 4 !a ! b !2c`
 let postBang = `1! 2 ! 3!! ! 4 ! a! b ! 2c! `
-let tildeTest = `2 2 +`
-let prog = `
+let tildeTest = `2 2 ~ +`
+let countTo10 = `
 count:
-dup 1 + dup
-10 >
-1 "count" put
-2 "done" put
-?exec
-print
+dup print 1 + dup
+10 >=
+"noop" "count"
+2 @ ? exec
 count;
 
-done:
-done;
-0 count 
-`
+1 count`
 let subProgTest = `0 a: 1 b: 2 b; 3 a; 4 a b`
 // [2,3,2,1,4,0
 

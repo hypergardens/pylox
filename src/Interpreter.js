@@ -1,5 +1,4 @@
 import { TokenTypes } from "./TokenTypes";
-import Token from "./Token";
 
 class Interpreter {
   constructor(vm) {
@@ -9,32 +8,25 @@ class Interpreter {
     this.tokens = [];
     this.stack = [];
     this.ignoring = {};
-    this.ptr = 0;
+    this.ptr = [];
     this.execOutput = [];
+    this.steps = 0;
+    this.maxSteps = 500;
+    this.programs = ["main"];
   }
   loadTokens(tokens) {
     this.tokens.push(...tokens);
   }
-  interpret(program = null) {
+  interpret() {
     let executed = false;
     try {
-      for (let i = 0; i < this.tokens.length; i++) {
-        let token = this.tokens[i];
-        if (program === null && token.programs.length === 0 ||
-          program !== null && token.programs.indexOf(program) !== -1) {
-          // main program or specific program token
-
-          // console.log(`Accepting token |${token.programs}-->${token.lexeme}|`);
-          this.ptr = i;
-          token.accept(this);
-          if (["WHITESPACE", "NEWLINE", "LABEL"].indexOf(token.type) === -1) {
-            this.execOutput.push(`${token.lexeme.padStart(8, " ")} → [${this.stack.slice().reverse().toString().padEnd(10, " ")}`);
-          }
-          executed = true;
-        } else {
-          // console.log(`Skipping token |${token.programs}-->${token.lexeme}|`);
-        }
+      this.ptr.push(0);
+      while (this.getPtr() < this.tokens.length) {
+        let executedNow = this.execToken();
+        executed = executed || executedNow;
+        this.advancePtr();
       }
+      this.ptr.pop();
     } catch (error) {
       if (error.token) {
         this.vm.error(error.token, error.message);
@@ -45,50 +37,85 @@ class Interpreter {
     }
     return executed;
   }
-  isIgnoring(label = null) {
-    if (label === null) {
-      for (let label of this.ignoring) {
-        if (this.ignoring === true) {
+
+  execToken() {
+    let token = this.tokens[this.getPtr()];
+    // console.log(`execToken '${token.lexeme}'#${this.ptr}`);
+    // console.log(this.programs.toString());
+    if (["WHITESPACE", "NEWLINE", "LABEL", "COMMENT"].indexOf(token.type) !== -1) {
+      // ignore whitespace and labels
+
+    } else {
+      let program = this.getProgram();
+
+      // show stack it shall apply to
+      if (program === "main" && token.programs.length === 0 ||
+        program !== "main" && token.programs.indexOf(program) !== -1) {
+        // main program or specific program token
+
+        // console.log(`Accepting token @${this.ptr}{${token.lexeme} ${token.type}}`);
+        this.steps += 1;
+        if (this.steps > this.maxSteps) {
+          this.vm.error(token, 'Too many steps.');
+          throw `INFINITE LOOP`;
+        } else {
+          token.accept(this);
+          this.execOutput.push(`${token.lexeme.padStart(8, " ")} → [${this.stack.slice().reverse().toString().padEnd(10, " ")}`);
           return true;
         }
+      } else {
+        // console.log(`Skipping token @${this.ptr}{${token.lexeme} ${token.type}}`);
+        return false;
       }
-    } else {
-      return (this.ignoring[label]);
     }
+  }
+
+  advancePtr() {
+    this.ptr[this.ptr.length - 1]++;
+  }
+  getPtr() {
+    return this.ptr[this.ptr.length - 1];
+  }
+  getProgram() {
+    return this.programs[this.programs.length - 1];
   }
 
   visitWORDtoken(token) {
     let word = token.lexeme;
     let termA, termB, termC;
     switch (word) {
+      case 'noop':
+        break;
+
       case '@':
+        // @ [x ... x-th ...
         this.checkStackSize(token, 1);
         termA = this.stack.pop();
         this.checkInt(token, termA);
         this.checkStackSize(token, termA);
         termB = this.top(token, termA);
-        termB = this.delete(token, termA);
+        this.delete(token, termA);
+        // delete element from where it was
         this.stack.push(termB);
+        break;
+
+      case '?':
+        // ? [cond ifTrue ifFalse ...
+        this.checkStackSize(token, 3);
+        termA = this.stack.pop();
+        termB = this.stack.pop();
+        termC = this.stack.pop();
+        if (termA !== 0) {
+          this.stack.push(termB);
+        } else {
+          this.stack.push(termC);
+        }
         break;
 
       case 'exec':
         this.checkStackSize(token, 1);
         termA = this.stack.pop();
         this.visitWORDtoken({ lexeme: termA });
-        break;
-
-      case '?exec':
-        this.checkStackSize(token, 3);
-        termA = this.stack.pop();
-        termB = this.stack.pop();
-        termC = this.stack.pop();
-        if (termA === 0) {
-          // this.print(`?exec : ${termB}`);
-          this.visitWORDtoken({ lexeme: termB });
-        } else {
-          // this.print(`?exec : ${termC}`);
-          this.visitWORDtoken({ lexeme: termC });
-        }
         break;
 
       case 'print':
@@ -101,7 +128,7 @@ class Interpreter {
         this.checkStackSize(token, 1);
         termA = this.stack.pop();
         this.checkStackSize(token, termA);
-        termB = this.delete(token, termA);
+        this.delete(token, termA);
         break;
 
       case 'put':
@@ -109,7 +136,6 @@ class Interpreter {
         termA = this.stack.pop();
         termB = this.stack.pop();
         this.place(token, termA, termB);
-        // termB = this.delete(token, termA);
         break;
 
       case 'copy':
@@ -241,14 +267,17 @@ class Interpreter {
         break;
 
       default:
-        // console.log(`Executing ${word} program`);
-        this.execOutput.push(`____`);
-        this.execOutput.push(`${token.lexeme}: exec`);
-
-        let executed = this.interpret(word);
+        // console.log(`Executing ${ word } program`);
+        this.execOutput.push(`╔════════╗`);
+        this.programs.push(word);
+        this.execOutput.push(`${this.programs.slice(1)}: exec`);
+        let executed = this.interpret();
         if (!executed) {
           this.vm.error(token, `Word not found.`);
         }
+        this.programs.pop();
+        this.execOutput.push(`╚════════╝`);
+        // this.execOutput.push(`end exec [${this.stack.slice().reverse().toString().padEnd(10, " ")}`);
         break;
     }
     return this.stack;
@@ -288,10 +317,10 @@ class Interpreter {
   delete(token, n) {
     if (n < 0) {
       this.checkStackSize(token, Math.abs(n));
-      return this.stack.splice(-n - 1, 1);
+      this.stack.splice(-n - 1, 1);
     } else if (n >= 0) {
       this.checkStackSize(token, n + 1);
-      return this.stack.splice(this.stack.length - n - 1, 1);
+      this.stack.splice(this.stack.length - n - 1, 1);
     }
   }
 
@@ -315,7 +344,7 @@ class Interpreter {
     // check 0 or 1
     for (let i = 0; i < n; i++) {
       if ([1, 0].indexOf(this.top(i)) === -1)
-        throw { token, message: `Must have bool operand. Found: ${this.top(token, i)}` };
+        throw { token, message: `Must have bool operand.Found: ${this.top(token, i)}` };
     }
   };
   checkStackSize(token, n = 0) {
@@ -334,4 +363,4 @@ class Interpreter {
   };
 };
 
-export default Interpreter;;
+export default Interpreter;;;
