@@ -24,20 +24,16 @@ export default {
         .reverse()
         .join(',')}`
       this.consoleText = `${this.pylox.consoleText}`
-      console.log(this.pylox.interpreter.stack)
+      // console.log(this.pylox.interpreter.stack)
     },
   },
   mounted: function () {
-    this.code = `
-
-inc:
-1 +
-inc;
-
-10 inc`;
-    console.log(this.pylox.parse(this.code))
+    this.code = `pi: //
+3.14 pi;
+pi`;
+    // console.log(this.pylox.parse(this.code))
     this.runCode()
-    console.log(this.debugText)
+    // console.log(this.debugText)
     // this.$emit('input')
     // console.log('mounted')
   },

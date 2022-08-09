@@ -11,7 +11,7 @@ class Interpreter {
     this.ptr = [];
     this.execOutput = [];
     this.steps = 0;
-    this.maxSteps = 500;
+    this.maxSteps = 2000;
     this.programs = ["main"];
   }
   loadTokens(tokens) {
@@ -153,6 +153,7 @@ class Interpreter {
         this.stack.push(value, value);
         break;
 
+
       case '>':
         this.checkStackSize(token, 2);
         termA = this.stack.pop();
@@ -251,6 +252,15 @@ class Interpreter {
         this.stack.push(termA / termB);
         break;
 
+      case '%':
+        this.checkStackSize(token, 2);
+        termA = this.stack.pop();
+        termB = this.stack.pop();
+        this.checkNumber(token, termA);
+        this.checkNumber(token, termB);
+        this.stack.push(termA % termB);
+        break;
+
       case '-':
         this.checkStackSize(token, 2);
         termA = this.stack.pop();
@@ -266,11 +276,28 @@ class Interpreter {
         this.stack.push(1 - this.stack.pop());
         break;
 
+      case '||':
+        this.checkStackSize(token, 1);
+        this.checkBools(token, 2);
+        termA = this.stack.pop();
+        termB = this.stack.pop();
+        this.stack.push(termA || termB);
+        break;
+
+      case '&&':
+        this.checkStackSize(token, 1);
+        this.checkBools(token, 2);
+        termA = this.stack.pop();
+        termB = this.stack.pop();
+        this.stack.push(termA && termB);
+        break;
+
       default:
         // console.log(`Executing ${ word } program`);
         this.execOutput.push(`╔════════╗`);
         this.programs.push(word);
         this.execOutput.push(`${this.programs.slice(1)}: exec`);
+        // TODO: executed refinements for empty programs
         let executed = this.interpret();
         if (!executed) {
           this.vm.error(token, `Word not found.`);
@@ -343,8 +370,10 @@ class Interpreter {
   checkBools(token, n = 0) {
     // check 0 or 1
     for (let i = 0; i < n; i++) {
-      if ([1, 0].indexOf(this.top(i)) === -1)
-        throw { token, message: `Must have bool operand.Found: ${this.top(token, i)}` };
+      if ([1, 0].indexOf(this.top(token, i)) === -1) {
+        let value = this.top(token, i);
+        throw { token, message: `Must have bool operand. Found: ${value} of type ${typeof value}` };
+      }
     }
   };
   checkStackSize(token, n = 0) {
