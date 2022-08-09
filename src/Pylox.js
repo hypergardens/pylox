@@ -11,6 +11,7 @@ class Pylox {
     this.stack = [];
     this.consoleText = [];
     this.hadError = false;
+    this.silentPrograms = {};
   }
 
   report(line, where, message) {

@@ -4,7 +4,6 @@ class Parser {
     this.current = 0;
     this.tokens = [];
     this.programs = [];
-    this.log = {};
   }
 
   parse(tokens) {
@@ -46,15 +45,15 @@ class Parser {
       // abc:
       // add program to array
       let label = lexeme.slice(0, lexeme.length - 1);
-      console.log(`at token ${token} starting label ${label}`);
+      // console.log(`at token ${token} starting label ${label}`);
 
-      // TODO: nonlog subprograms
       // eat whitespace
       while (this.match("WHITESPACE")) { }
 
+
       // if followed by comment, nonlog
       if (this.peek().type === "COMMENT") {
-        console.log("non-log subprogram");
+        this.vm.silentPrograms[label] = true;
       }
 
       this.programs.push(label);
@@ -62,7 +61,7 @@ class Parser {
     } else if (lexeme[lexeme.length - 1] === `;`) {
       // remove program from array
       let label = lexeme.slice(0, lexeme.length - 1);
-      console.log(`at token ${token} ending label ${label}`);
+      // console.log(`at token ${token} ending label ${label}`);
       if (this.programs.indexOf(label) !== -1) {
         this.programs.splice(this.programs.indexOf(label), 1);
       } else {

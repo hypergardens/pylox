@@ -29,6 +29,7 @@ class Token {
     }
   }
 
+
   accept(visitor) {
     visitor[`visit${this.type}token`](this);
   }

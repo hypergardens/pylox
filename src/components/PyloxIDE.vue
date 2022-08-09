@@ -29,8 +29,14 @@ export default {
   },
   mounted: function () {
     this.code = `pi: //
-3.14 pi;
-pi`;
+3.14
+pi;
+
+tau:
+pi 2 *
+tau;
+
+tau`;
     // console.log(this.pylox.parse(this.code))
     this.runCode()
     // console.log(this.debugText)

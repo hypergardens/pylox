@@ -19,6 +19,12 @@ class Interpreter {
   }
   interpret() {
     let executed = false;
+    let silent = !this.shouldLog();
+
+    if (!silent) {
+      this.execOutput.push(`╔════════╗`);
+      this.execOutput.push(`${this.programs.slice(1)}: exec`);
+    }
     try {
       this.ptr.push(0);
       while (this.getPtr() < this.tokens.length) {
@@ -35,11 +41,15 @@ class Interpreter {
         throw error;
       }
     }
+
+    if (!silent) {
+      this.execOutput.push(`╚════════╝`);
+    }
     return executed;
   }
 
   execToken() {
-    let token = this.tokens[this.getPtr()];
+    let token = this.peek();
     // console.log(`execToken '${token.lexeme}'#${this.ptr}`);
     // console.log(this.programs.toString());
     if (["WHITESPACE", "NEWLINE", "LABEL", "COMMENT"].indexOf(token.type) !== -1) {
@@ -60,7 +70,9 @@ class Interpreter {
           throw `INFINITE LOOP`;
         } else {
           token.accept(this);
-          this.execOutput.push(`${token.lexeme.padStart(8, " ")} → [${this.stack.slice().reverse().toString().padEnd(10, " ")}`);
+          if (this.shouldLog()) {
+            this.execOutput.push(`${token.lexeme.padStart(8, " ")} → [${this.stack.slice().reverse().toString().padEnd(10, " ")}`);
+          }
           return true;
         }
       } else {
@@ -69,7 +81,19 @@ class Interpreter {
       }
     }
   }
+  shouldLog() {
+    let token = this.peek();
+    for (let program of this.programs) {
+      if (this.vm.silentPrograms[program] === true) {
+        return false;
+      }
+    }
+    return true;
+  }
 
+  peek() {
+    return this.tokens[this.getPtr()];
+  }
   advancePtr() {
     this.ptr[this.ptr.length - 1]++;
   }
@@ -293,17 +317,15 @@ class Interpreter {
         break;
 
       default:
+        // execute program
         // console.log(`Executing ${ word } program`);
-        this.execOutput.push(`╔════════╗`);
         this.programs.push(word);
-        this.execOutput.push(`${this.programs.slice(1)}: exec`);
         // TODO: executed refinements for empty programs
         let executed = this.interpret();
         if (!executed) {
           this.vm.error(token, `Word not found.`);
         }
         this.programs.pop();
-        this.execOutput.push(`╚════════╝`);
         // this.execOutput.push(`end exec [${this.stack.slice().reverse().toString().padEnd(10, " ")}`);
         break;
     }

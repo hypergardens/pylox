@@ -1,5 +1,5 @@
 
-cex:
+cex: 
 2 @ ? exec
 cex;
 
@@ -18,7 +18,7 @@ mult5:
 5 1@ % 0 ==
 mult5;
 
-mult3or5:
+mult3or5: //
 dup mult3
 1 @
 dup mult5
@@ -31,7 +31,7 @@ mult3or5
 "print" "doFizzBuzz" cex
 fbMain;
 
-doFizzBuzz:
+doFizzBuzz: //
 dup dup "" 1@
 mult5 "noop" "addBuzz" cex
 2@
