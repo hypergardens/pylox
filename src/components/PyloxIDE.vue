@@ -36,7 +36,7 @@ tau:
 pi 2 *
 tau;
 
-tau`;
+tau`
     // console.log(this.pylox.parse(this.code))
     this.runCode()
     // console.log(this.debugText)
@@ -81,27 +81,38 @@ let subProgTest = `0 a: 1 b: 2 b; 3 a; 4 a b`
 </script>
 <template>
   <div class="wrapper">
-    <div class="deb code-text">
-      <p class="debug-output" v-for="output in pylox.interpreter.execOutput">
-        <pre>{{ output }}</pre>
-      </p>
+    <div class="left-column deb code-text">
+      <pre class="debug-output" v-for="output in pylox.interpreter.execOutput"
+        >{{ output }}
+      </pre>
     </div>
-    <textarea
-      spellcheck="false"
-      class="code-area code-text aside"
-      v-model="code"
-      @input.prevent="inputtedCode"
-    ></textarea>
-    <div class="content stack-view code-text">
-      {{ stackText }}
-    </div>
-    <div class="footer console-view code-text">
-      <span class="">Console: {{ consoleText }}</span>
+
+    <div class="right-column">
+      <div class="content stack-view code-text center">
+        {{ stackText }}
+      </div>
+      <textarea
+        spellcheck="false"
+        class="code-editing-area code-text center"
+        v-model="code"
+        @input.prevent="inputtedCode"
+      ></textarea>
+      <div class="footer console-view code-text center">
+        <span class="">Console: {{ consoleText }}</span>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
+.center {
+  margin-left: auto;
+  margin-right: auto;
+}
+.deb {
+  padding: 0px 30px;
+  width: 600px;
+}
 .debug-output {
   line-height: 16px;
   padding: 0px;
@@ -112,29 +123,26 @@ let subProgTest = `0 a: 1 b: 2 b; 3 a; 4 a b`
   line-height: 24px;
   font-weight: 400;
   font-family: monospace;
-
+  padding: 10px;
   box-sizing: border-box;
 }
 .wrapper {
-  display: grid;
-  grid-template-columns: 600px 300px 500px;
-
-  grid-template-rows: 300px 300px;
-  grid-template-areas:
-    'deb aside content'
-    'deb footer footer';
-  grid-gap: 15px;
+  display: flex;
 }
-.code-area {
-  grid-area: aside;
+.code-editing-area {
+  width: 400px;
+  height: 300px;
 }
 
 .stack-view {
-  margin: 0px;
+  width: 300px;
+  height: 60px;
+  margin-bottom: 20px;
+  word-wrap: break-word;
   background-color: #111;
-  grid-area: content;
 }
 .console-view {
-  grid-area: footer;
+  width: 300px;
+  height: 300px;
 }
 </style>
