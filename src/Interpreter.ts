@@ -1,6 +1,7 @@
 import { Library } from './StandardLib'
 import { Token, TokenTypes, canVisitTokens } from './Tokens'
 import Pylox from './Pylox'
+import { StackOperation } from './StackOperation'
 class Interpreter {
   vm: Pylox
   tokens: Token[]
@@ -11,6 +12,7 @@ class Interpreter {
   steps: number
   maxSteps: number
   programs: string[]
+  stackOperations: StackOperation[]
 
   constructor(vm: Pylox) {
     canVisitTokens(this)
@@ -19,6 +21,7 @@ class Interpreter {
 
     this.tokens = []
     this.stack = []
+    this.stackOperations = []
     this.ignoring = {}
     this.ptr = []
     this.execOutput = []
@@ -28,6 +31,11 @@ class Interpreter {
   }
   loadTokens(tokens: Token[]): void {
     this.tokens.push(...tokens)
+  }
+  addStackOperation(stackOp: StackOperation) {
+    stackOp.step = this.steps
+    stackOp.token = this.peek()
+    this.stackOperations.push(stackOp)
   }
   interpret() {
     let executed = false
@@ -104,7 +112,7 @@ class Interpreter {
     }
   }
   shouldLog() {
-    let token = this.peek()
+    // TODO: different logic neededhere
     for (let program of this.programs) {
       if (this.vm.silentPrograms[program] === true) {
         return false
@@ -126,225 +134,210 @@ class Interpreter {
     return this.programs[this.programs.length - 1]
   }
 
-  visitWORDtoken(token) {
+  visitWORDtoken(token: Token) {
     let word = token.lexeme
     let termA, termB, termC
 
     if (Library[word] !== undefined) {
-      Library[word].execute(this)
-    }
+      let operation: StackOperation = Library[word].execute(this, token)
+      console.log(operation)
+    } else
+      switch (word) {
+        case '@':
+          // @ [x ... x-th ...
+          this.checkStackSize(token, 1)
+          termA = this.stack.pop()
+          this.checkInt(token, termA)
+          this.checkStackSize(token, termA)
+          termB = this.pluck(token, termA)
+          break
 
-    switch (word) {
-      case 'noop':
-        break
+        case '?':
+          // ? [cond ifTrue ifFalse ...
+          this.checkStackSize(token, 3)
+          termA = this.stack.pop()
+          termB = this.stack.pop()
+          termC = this.stack.pop()
+          if (termA !== 0) {
+            this.stack.push(termB)
+          } else {
+            this.stack.push(termC)
+          }
+          break
 
-      case '@':
-        // @ [x ... x-th ...
-        this.checkStackSize(token, 1)
-        termA = this.stack.pop()
-        this.checkInt(token, termA)
-        this.checkStackSize(token, termA)
-        termB = this.top(token, termA)
-        this.delete(token, termA)
-        // delete element from where it was
-        this.stack.push(termB)
-        break
+        // case 'exec':
+        //   this.checkStackSize(token, 1)
+        //   termA = this.stack.pop()
+        //   this.visitWORDtoken({ lexeme: termA })
+        //   break
 
-      case '?':
-        // ? [cond ifTrue ifFalse ...
-        this.checkStackSize(token, 3)
-        termA = this.stack.pop()
-        termB = this.stack.pop()
-        termC = this.stack.pop()
-        if (termA !== 0) {
+        case 'print':
+          this.checkStackSize(token, 1)
+          termA = this.stack.pop()
+          this.print(termA)
+          break
+
+        case 'del':
+          this.checkStackSize(token, 1)
+          termA = this.stack.pop()
+          this.checkStackSize(token, termA)
+          this.delete(token, termA)
+          break
+
+        case 'put':
+          this.checkStackSize(token, 2)
+          termA = this.stack.pop()
+          termB = this.stack.pop()
+          this.place(token, termA, termB)
+          break
+
+        case 'copy':
+          this.checkStackSize(token, 1)
+          termA = this.stack.pop()
+          this.checkInt(token, termA)
+          this.checkStackSize(token, termA)
+          termB = this.top(token, termA)
           this.stack.push(termB)
-        } else {
-          this.stack.push(termC)
-        }
-        break
+          break
 
-      case 'exec':
-        this.checkStackSize(token, 1)
-        termA = this.stack.pop()
-        this.visitWORDtoken({ lexeme: termA })
-        break
+        case 'dup':
+          this.checkStackSize(token, 1)
+          let value = this.stack.pop()
+          this.stack.push(value, value)
+          break
 
-      case 'print':
-        this.checkStackSize(token, 1)
-        termA = this.stack.pop()
-        this.print(termA)
-        break
+        case '>':
+          this.checkStackSize(token, 2)
+          termA = this.stack.pop()
+          termB = this.stack.pop()
+          this.checkNumber(token, termA)
+          this.checkNumber(token, termB)
+          if (termA > termB) this.stack.push(1)
+          else this.stack.push(0)
+          break
 
-      case 'del':
-        this.checkStackSize(token, 1)
-        termA = this.stack.pop()
-        this.checkStackSize(token, termA)
-        this.delete(token, termA)
-        break
+        case '>=':
+          this.checkStackSize(token, 2)
+          termA = this.stack.pop()
+          termB = this.stack.pop()
+          this.checkNumber(token, termA)
+          this.checkNumber(token, termB)
+          if (termA >= termB) this.stack.push(1)
+          else this.stack.push(0)
+          break
 
-      case 'put':
-        this.checkStackSize(token, 2)
-        termA = this.stack.pop()
-        termB = this.stack.pop()
-        this.place(token, termA, termB)
-        break
+        case '<':
+          this.checkStackSize(token, 2)
+          termA = this.stack.pop()
+          termB = this.stack.pop()
+          this.checkNumber(token, termA)
+          this.checkNumber(token, termB)
+          if (termA < termB) this.stack.push(1)
+          else this.stack.push(0)
+          break
 
-      case 'copy':
-        this.checkStackSize(token, 1)
-        termA = this.stack.pop()
-        this.checkInt(token, termA)
-        this.checkStackSize(token, termA)
-        termB = this.top(token, termA)
-        this.stack.push(termB)
-        break
+        case '<=':
+          this.checkStackSize(token, 2)
+          termA = this.stack.pop()
+          termB = this.stack.pop()
+          this.checkNumber(token, termA)
+          this.checkNumber(token, termB)
+          if (termA <= termB) this.stack.push(1)
+          else this.stack.push(0)
+          break
 
-      case 'dup':
-        this.checkStackSize(token, 1)
-        let value = this.stack.pop()
-        this.stack.push(value, value)
-        break
+        case '==':
+          this.checkStackSize(token, 2)
+          termA = this.stack.pop()
+          termB = this.stack.pop()
+          this.checkNumber(token, termA)
+          this.checkNumber(token, termB)
+          if (termA === termB) this.stack.push(1)
+          else this.stack.push(0)
+          break
 
-      case '>':
-        this.checkStackSize(token, 2)
-        termA = this.stack.pop()
-        termB = this.stack.pop()
-        this.checkNumber(token, termA)
-        this.checkNumber(token, termB)
-        if (termA > termB) this.stack.push(1)
-        else this.stack.push(0)
-        break
+        case '!=':
+          this.checkStackSize(token, 2)
+          termA = this.stack.pop()
+          termB = this.stack.pop()
+          this.checkNumber(token, termA)
+          this.checkNumber(token, termB)
+          if (termA !== termB) this.stack.push(1)
+          else this.stack.push(0)
+          break
 
-      case '>=':
-        this.checkStackSize(token, 2)
-        termA = this.stack.pop()
-        termB = this.stack.pop()
-        this.checkNumber(token, termA)
-        this.checkNumber(token, termB)
-        if (termA >= termB) this.stack.push(1)
-        else this.stack.push(0)
-        break
+        case '*':
+          this.checkStackSize(token, 2)
+          termA = this.stack.pop()
+          termB = this.stack.pop()
+          this.checkNumber(token, termA)
+          this.checkNumber(token, termB)
+          this.stack.push(termA * termB)
+          break
 
-      case '<':
-        this.checkStackSize(token, 2)
-        termA = this.stack.pop()
-        termB = this.stack.pop()
-        this.checkNumber(token, termA)
-        this.checkNumber(token, termB)
-        if (termA < termB) this.stack.push(1)
-        else this.stack.push(0)
-        break
+        case '/':
+          this.checkStackSize(token, 2)
+          termA = this.stack.pop()
+          termB = this.stack.pop()
+          this.checkNumber(token, termA)
+          this.checkNumber(token, termB)
+          this.stack.push(termA / termB)
+          break
 
-      case '<=':
-        this.checkStackSize(token, 2)
-        termA = this.stack.pop()
-        termB = this.stack.pop()
-        this.checkNumber(token, termA)
-        this.checkNumber(token, termB)
-        if (termA <= termB) this.stack.push(1)
-        else this.stack.push(0)
-        break
+        case '%':
+          this.checkStackSize(token, 2)
+          termA = this.stack.pop()
+          termB = this.stack.pop()
+          this.checkNumber(token, termA)
+          this.checkNumber(token, termB)
+          this.stack.push(termA % termB)
+          break
 
-      case '==':
-        this.checkStackSize(token, 2)
-        termA = this.stack.pop()
-        termB = this.stack.pop()
-        this.checkNumber(token, termA)
-        this.checkNumber(token, termB)
-        if (termA === termB) this.stack.push(1)
-        else this.stack.push(0)
-        break
+        case '-':
+          this.checkStackSize(token, 2)
+          termA = this.stack.pop()
+          termB = this.stack.pop()
+          this.checkNumber(token, termA)
+          this.checkNumber(token, termB)
+          this.stack.push(termA - termB)
+          break
 
-      case '!=':
-        this.checkStackSize(token, 2)
-        termA = this.stack.pop()
-        termB = this.stack.pop()
-        this.checkNumber(token, termA)
-        this.checkNumber(token, termB)
-        if (termA !== termB) this.stack.push(1)
-        else this.stack.push(0)
-        break
+        case '!':
+          this.checkStackSize(token, 1)
+          this.checkBools(token, 1)
+          this.stack.push(1 - Number(this.stack.pop()))
+          break
 
-      case '+':
-        this.checkStackSize(token, 2)
-        termA = this.stack.pop()
-        termB = this.stack.pop()
-        // this.print(`${termA} + ${termB} = ${termA + termB}`);
-        this.stack.push(termA + termB)
-        break
+        case '||':
+          this.checkStackSize(token, 1)
+          this.checkBools(token, 2)
+          termA = this.stack.pop()
+          termB = this.stack.pop()
+          this.stack.push(termA || termB)
+          break
 
-      case '*':
-        this.checkStackSize(token, 2)
-        termA = this.stack.pop()
-        termB = this.stack.pop()
-        this.checkNumber(token, termA)
-        this.checkNumber(token, termB)
-        this.stack.push(termA * termB)
-        break
+        case '&&':
+          this.checkStackSize(token, 1)
+          this.checkBools(token, 2)
+          termA = this.stack.pop()
+          termB = this.stack.pop()
+          this.stack.push(termA && termB)
+          break
 
-      case '/':
-        this.checkStackSize(token, 2)
-        termA = this.stack.pop()
-        termB = this.stack.pop()
-        this.checkNumber(token, termA)
-        this.checkNumber(token, termB)
-        this.stack.push(termA / termB)
-        break
-
-      case '%':
-        this.checkStackSize(token, 2)
-        termA = this.stack.pop()
-        termB = this.stack.pop()
-        this.checkNumber(token, termA)
-        this.checkNumber(token, termB)
-        this.stack.push(termA % termB)
-        break
-
-      case '-':
-        this.checkStackSize(token, 2)
-        termA = this.stack.pop()
-        termB = this.stack.pop()
-        this.checkNumber(token, termA)
-        this.checkNumber(token, termB)
-        this.stack.push(termA - termB)
-        break
-
-      case '!':
-        this.checkStackSize(token, 1)
-        this.checkBools(token, 1)
-        this.stack.push(1 - Number(this.stack.pop()))
-        break
-
-      case '||':
-        this.checkStackSize(token, 1)
-        this.checkBools(token, 2)
-        termA = this.stack.pop()
-        termB = this.stack.pop()
-        this.stack.push(termA || termB)
-        break
-
-      case '&&':
-        this.checkStackSize(token, 1)
-        this.checkBools(token, 2)
-        termA = this.stack.pop()
-        termB = this.stack.pop()
-        this.stack.push(termA && termB)
-        break
-
-      default:
-        // execute program
-        // console.log(`Executing ${ word } program`);
-        this.programs.push(word)
-        // TODO: executed refinements for empty programs
-        let executed = this.interpret()
-        if (!executed) {
-          this.vm.error(token, `Word not found.`)
-        }
-        this.programs.pop()
-        // this.execOutput.push(`end exec [${this.stack.slice().reverse().toString().padEnd(10, " ")}`);
-        break
-    }
+        default:
+          // execute program
+          // console.log(`Executing ${ word } program`);
+          this.programs.push(word)
+          // TODO: executed refinements for empty programs
+          let executed = this.interpret()
+          if (!executed) {
+            this.vm.error(token, `Word not found.`)
+          }
+          this.programs.pop()
+          // this.execOutput.push(`end exec [${this.stack.slice().reverse().toString().padEnd(10, " ")}`);
+          break
+      }
   }
-  visitLABELtoken(token: Token) {}
   visitSTRINGtoken(token: Token) {
     // this.place(token, token.literal, 0);
     this.stack.push(token.literal)
@@ -360,6 +353,7 @@ class Interpreter {
     this.stack.push(token.literal)
     return this.stack
   }
+  visitLABELtoken(token: Token) {}
   visitWHITESPACEtoken(token: Token) {}
   visitNEWLINEtoken(token: Token) {}
   visitCOMMENTtoken(token: Token) {}
@@ -383,6 +377,12 @@ class Interpreter {
       this.checkStackSize(token, n + 1)
       this.stack.splice(this.stack.length - n - 1, 1)
     }
+  }
+
+  pluck(token: Token, termA: number) {
+    let elem = this.top(token, termA)
+    this.delete(token, termA)
+    return elem
   }
 
   place(
