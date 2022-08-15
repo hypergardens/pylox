@@ -28,15 +28,7 @@ export default {
     },
   },
   mounted: function () {
-    this.code = `pi: //
-3.14
-pi;
-
-tau:
-pi 2 *
-tau;
-
-tau`
+    this.code = basic
     // console.log(this.pylox.parse(this.code))
     this.runCode()
     // console.log(this.debugText)
@@ -59,6 +51,45 @@ count;
 
 1 count`
 let subProgTest = `0 a: 1 b: 2 b; 3 a; 4 a b`
+let ack = `
+// [m n
+ack0:
+1 del
+1 +
+ack0;
+
+cex:
+2 @ ? exec
+cex;
+
+// [top bot
+ackMaster:
+dup 0 ==
+"ack1" "ack0"
+2 @ ? exec
+ackMaster;
+
+ack1:
+1 @ 
+0 ==
+"ack10" "ack11"
+2 @ ? exec
+ack1;
+
+ack10:
+noop
+ack10;
+
+ack11:
+1 1 @ - 
+ack11;
+
+// bot top
+    0   1 ackMaster`
+let basic = `pi:
+3.14
+pi;
+pi 2 *`
 // [2,3,2,1,4,0
 
 // let pylox = new Pylox()
