@@ -1,5 +1,6 @@
 <script>
 import Pylox from '../Pylox'
+import { Token } from '../Tokens'
 
 export default {
   name: 'app',
@@ -19,7 +20,8 @@ export default {
     runCode() {
       this.pylox = new Pylox()
       this.pylox.run(this.code)
-      this.stackText = `[${this.pylox.interpreter.stack
+      this.stackText = `${this.pylox.interpreter.stack
+        // .map((e) => `${e.lexeme}#${e.uid}`)
         .slice()
         .reverse()
         .join(',')}`
@@ -28,7 +30,10 @@ export default {
     },
   },
   mounted: function () {
-    this.code = basic
+    this.code = `pi:
+3.14
+pi;
+"pi" exec`
     // console.log(this.pylox.parse(this.code))
     this.runCode()
     // console.log(this.debugText)
@@ -70,7 +75,7 @@ dup 0 ==
 ackMaster;
 
 ack1:
-1 @ 
+1 @
 0 ==
 "ack10" "ack11"
 2 @ ? exec
@@ -81,7 +86,7 @@ noop
 ack10;
 
 ack11:
-1 1 @ - 
+1 1 @ -
 ack11;
 
 // bot top
@@ -113,14 +118,16 @@ pi 2 *`
 <template>
   <div class="wrapper">
     <div class="left-column deb code-text">
-      <pre class="debug-output" v-for="output in pylox.interpreter.execOutput"
-        >{{ output }}
+      <pre
+        class="debug-output"
+        v-for="operation in pylox.interpreter.stackOperations"
+        >{{ operation }}
       </pre>
     </div>
 
     <div class="right-column">
       <div class="content stack-view code-text center">
-        {{ stackText }}
+        [<span v-for="line in stackText">{{ line }}</span>
       </div>
       <textarea
         spellcheck="false"

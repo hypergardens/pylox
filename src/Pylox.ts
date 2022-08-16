@@ -21,6 +21,7 @@ class Pylox {
     this.consoleText = []
     this.hadError = false
     this.silentPrograms = {}
+    Token.uid = 0
   }
 
   report(line: number, where: string, message: string) {

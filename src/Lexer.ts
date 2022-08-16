@@ -123,9 +123,9 @@ class Lexer {
     }
 
     if (this.isAtEnd()) {
-      this.vm.error(this.makeToken('BAD'), 'Unterminated string.')
+      this.vm.error(this.makeToken('STRING'), 'Unterminated string.')
     }
-
+    // TODO: "pi" vs pi
     // the closing "
     this.advance()
     let value = this.source.slice(this.start + 1, this.current - 1)
@@ -183,6 +183,8 @@ class Lexer {
 
   makeToken(type: string, literal: number | string | null = null) {
     let text = this.source.slice(this.start, this.current)
+    console.log(`text: ${text} literal: ${literal}`)
+    // let token = new Token(type, text, literal, this.xOff, this.yOff)
     let token = new Token(type, text, literal, this.xOff, this.yOff)
     this.xOff += text.length
     return token

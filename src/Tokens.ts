@@ -50,8 +50,6 @@ export class Token {
     this.xOff = xOff
     this.yOff = yOff
     this.programs = []
-
-    console.log(this)
   }
 
   setPrograms(programs) {
@@ -66,7 +64,12 @@ export class Token {
   }
 
   toString() {
-    return `${this.type} ${this.lexeme}#${this.uid} ${this.literal} at ${this.yOff}`
+    // VULN: confusion between literal and lexeme
+    return `${this.literal ? this.literal : this.lexeme}`
+    // return `${this.literal ? `V${this.literal}` : `L${this.lexeme}`}#${
+    //   this.uid
+    // }`
+    // return `${this.type} ${this.lexeme}#${this.uid} ${this.literal} at ${this.yOff}`
   }
 }
 
