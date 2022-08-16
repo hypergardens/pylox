@@ -33,7 +33,9 @@ export default {
     this.code = `pi:
 3.14
 pi;
-"pi" exec`
+
+tau: pi 2 * tau;
+"tau" exec`
     // console.log(this.pylox.parse(this.code))
     this.runCode()
     // console.log(this.debugText)

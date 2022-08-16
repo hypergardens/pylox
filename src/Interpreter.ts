@@ -103,7 +103,7 @@ class Interpreter {
     }
   }
   shouldLog() {
-    // TODO: different logic neededhere
+    // TODO: different logic needed here
     for (let program of this.programs) {
       if (this.vm.silentPrograms[program] === true) {
         return false
