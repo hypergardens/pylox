@@ -1,5 +1,5 @@
 <script>
-import Pylox from '../Pylox'
+import Pylox from '../Stox'
 import { Token } from '../Tokens'
 import { StandardLibrary } from '../StandardLib'
 // import genetic from '../genetic'
@@ -10,7 +10,7 @@ export default {
     return {
       code: 'a b c d e -1 @',
       consoleText: 'testConsole',
-      pylox: new Pylox(),
+      stox: new Pylox(),
     }
   },
   methods: {
@@ -19,10 +19,10 @@ export default {
       this.runCode()
     },
     runCode() {
-      this.pylox = new Pylox()
-      this.pylox.run(this.code)
-      // console.log(this.pylox.interpreter.stack)
-      console.log(this.pylox.interpreter.output())
+      this.stox = new Pylox()
+      this.stox.run(this.code)
+      // console.log(this.stox.interpreter.stack)
+      console.log(this.stox.interpreter.output())
     },
   },
   mounted: function () {
@@ -32,13 +32,13 @@ export default {
 3 "three" #
 10000
 "one" @`
-    // console.log(this.pylox.parse(this.code))
+    // console.log(this.stox.parse(this.code))
     this.runCode()
     // this.$emit('input')
   },
   computed: {
     stackText() {
-      return `${this.pylox.interpreter.stack.join(',') || ''}]`
+      return `${this.stox.interpreter.stack.join(',') || ''}]`
     },
   },
 }
@@ -80,9 +80,7 @@ pi 2 *`
 <template>
   <div class="wrapper">
     <div class="left-column deb code-text">
-      <pre
-        class="debug-output"
-        v-for="operation in pylox.interpreter.execOutput"
+      <pre class="debug-output" v-for="operation in stox.interpreter.execOutput"
         >{{ operation }}
       </pre>
     </div>
@@ -98,7 +96,7 @@ pi 2 *`
         @input.prevent="inputtedCode"
       ></textarea>
       <div class="footer console-view code-text center">
-        <span class="">Console: {{ this.pylox.consoleText.join('\n') }}</span>
+        <span class="">Console: {{ this.stox.consoleText.join('\n') }}</span>
       </div>
     </div>
   </div>

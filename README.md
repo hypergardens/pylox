@@ -1,6 +1,6 @@
-# Pylox
+# Stox
 
-- An ugly language that loves you <3
+- An ugly language that can do anything!
 
 program = token* EOF
 

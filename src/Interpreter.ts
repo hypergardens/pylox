@@ -1,9 +1,9 @@
 import { StandardLibrary } from './StandardLib'
 import { Token, TokenTypes, canVisitTokens } from './Tokens'
-import Pylox from './Pylox'
+import Stox from './Stox'
 import { StackOperation } from './StackOperation'
 class Interpreter {
-  vm: Pylox
+  vm: Stox
   tokens: Token[]
   stack: Token[]
   ignoring: {}
@@ -13,7 +13,7 @@ class Interpreter {
   maxSteps: number
   programs: string[]
 
-  constructor(vm: Pylox) {
+  constructor(vm: Stox) {
     canVisitTokens(this)
 
     this.vm = vm

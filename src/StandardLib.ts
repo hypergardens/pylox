@@ -1,6 +1,6 @@
 import { vModelCheckbox } from 'vue'
 import Interpreter from './Interpreter'
-import Pylox from './Pylox'
+import Stox from './Stox'
 import { StackOperation } from './StackOperation'
 import { Token } from './Tokens'
 
@@ -55,8 +55,8 @@ export const StandardLibrary: LibraryType = {
           interpreter.vm.error(token, `Multiple named tokens: #${name}`)
         }
         let foundToken = matchingName[0]
-        let index =
-          interpreter.stack.length - 1 - interpreter.stack.indexOf(foundToken)
+        let index = interpreter.indexOf(token)
+
         interpreter.pluck(token, index)
         interpreter.place(token, 0, foundToken)
 

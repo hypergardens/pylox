@@ -1,5 +1,5 @@
 import { StandardLibrary } from './StandardLib'
-import Pylox from './Pylox'
+import Stox from './Stox'
 import dist from '@vitejs/plugin-vue'
 
 export default null
@@ -28,7 +28,7 @@ class Script {
     this.score = -1000
   }
   run() {
-    let vm = new Pylox(true)
+    let vm = new Stox(true)
     vm.run(this.source.join(' '))
     this.output = vm.interpreter.output()
     return this.output

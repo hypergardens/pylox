@@ -1,5 +1,5 @@
 import { Token } from './Tokens'
-import Pylox from './Pylox'
+import Stox from './Stox'
 class Lexer {
   source: string
   start: number
@@ -7,9 +7,9 @@ class Lexer {
   xOff: number
   yOff: number
   tokens: Token[]
-  vm: Pylox
+  vm: Stox
 
-  constructor(vm: Pylox) {
+  constructor(vm: Stox) {
     this.source = ''
     this.start = 0
     this.current = 0

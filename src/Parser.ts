@@ -1,12 +1,12 @@
-import Pylox from './Pylox'
+import Stox from './Stox'
 import { Token } from './Tokens'
 class Parser {
-  vm: Pylox
+  vm: Stox
   current: number
   tokens: Token[]
   programs: string[]
 
-  constructor(vm: Pylox) {
+  constructor(vm: Stox) {
     this.vm = vm
     this.current = 0
     this.tokens = []

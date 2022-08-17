@@ -1,50 +1,39 @@
-
 cex: 
-2 @ ? exec
+  2 @ ? exec
 cex;
 
+mult:
+  1@ % 0 ==
+mult;
+
 count:
-dup fbMain
-1 + dup
-15 >=
-"noop" "count" cex
+  dup fbMain
+  1 + dup
+  15 >=
+  "noop" "count" cex
 count;
 
-mult3:
-3 1@ % 0 ==
-mult3;
-
-mult5:
-5 1@ % 0 ==
-mult5;
-
-mult3or5: //
-dup mult3
-1 @
-dup mult5
-2 @
-||
+mult3or5:
+  dup 3 mult 
+  1 @
+  dup 5 mult
+  2 @
+  ||
 mult3or5;
 
 fbMain:
-mult3or5
-"print" "doFizzBuzz" cex
+  mult3or5 "print" "doFizzBuzz" cex
 fbMain;
 
-doFizzBuzz: //
-dup dup "" 1@
-mult5 "noop" "addBuzz" cex
-2@
-mult3 "noop" "addFizz" cex
-print
+doFizzBuzz:
+  dup dup "" 1@
+  5 mult "noop" "addBuzz" cex
+  2@
+  3 mult "noop" "addFizz" cex
+  print
 doFizzBuzz;
 
-addFizz:
-"fizz" +
-addFizz;
-
-addBuzz:
-"buzz" +
-addBuzz;
+addFizz: "fizz" + addFizz;
+addBuzz: "buzz" + addBuzz;
 
 0 count

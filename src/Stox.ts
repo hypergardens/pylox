@@ -3,7 +3,7 @@ import Parser from './Parser'
 import Interpreter from './Interpreter'
 import { Token } from './Tokens'
 
-class Pylox {
+class Stox {
   hadError: boolean
   lexer: Lexer
   parser: Parser
@@ -64,4 +64,4 @@ class Pylox {
   }
 }
 
-export default Pylox
+export default Stox
