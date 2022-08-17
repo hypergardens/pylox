@@ -49,15 +49,14 @@ export const StandardLibrary: LibraryType = {
       // "pi" @
       let name = <string>pullToken.literal
       let matchingName = interpreter.stack.filter((tok) => tok.name === name)
-      console.log(matchingName)
       if (matchingName.length > 0) {
         if (matchingName.length > 1) {
           interpreter.vm.error(token, `Multiple named tokens: #${name}`)
         }
         let foundToken = matchingName[0]
-        let index = interpreter.indexOf(token)
+        let index = interpreter.stack.indexOf(foundToken)
 
-        interpreter.pluck(token, index)
+        interpreter.stack.splice(index, 1)
         interpreter.place(token, 0, foundToken)
 
         return new StackOperation(interpreter, {
@@ -378,7 +377,6 @@ function makeBinaryOperation(
       termB = termB === 0 ? 0 : 1
     }
     let evalString = `${termA} ${symbol} ${termB}`
-    console.log(evalString)
     let result = eval(evalString)
     if (castResultToBool) result = result === 0 || result === false ? 0 : 1
     let newToken = new Token(

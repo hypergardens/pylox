@@ -223,7 +223,8 @@ class Interpreter {
   }
 
   indexOf(token: Token) {
-    let index = this.stack.length - 1 - this.stack.indexOf(token)
+    // 2 1 0
+    let index = this.stack.length - this.stack.indexOf(token) - 2
     return index
   }
 

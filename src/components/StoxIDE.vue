@@ -21,8 +21,6 @@ export default {
     runCode() {
       this.stox = new Stox()
       this.stox.run(this.code)
-      // console.log(this.stox.interpreter.stack)
-      console.log(this.stox.interpreter.output())
     },
   },
   mounted: function () {
@@ -31,8 +29,7 @@ export default {
 2 "two" #
 3 "three" #
 10000
-"one" @`
-    // console.log(this.stox.parse(this.code))
+"two" @`
     this.runCode()
     // this.$emit('input')
   },
