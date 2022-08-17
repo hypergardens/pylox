@@ -11,8 +11,9 @@ class Pylox {
   stack: Token[]
   consoleText: string[]
   silentPrograms: {}
+  muffle: boolean
 
-  constructor() {
+  constructor(muffle = false) {
     this.hadError = false
     this.lexer = new Lexer(this)
     this.parser = new Parser(this)
@@ -21,14 +22,17 @@ class Pylox {
     this.consoleText = []
     this.hadError = false
     this.silentPrograms = {}
+    this.muffle = muffle
     Token.uid = 0
   }
 
   report(line: number, where: string, message: string) {
-    let errMsg = `[Line ${line}] Error ${where}: ${message}`
-    console.error(errMsg)
-    this.hadError = true
-    this.consoleText.push(errMsg)
+    if (!this.muffle) {
+      let errMsg = `[Line ${line}] Error ${where}: ${message}`
+      console.error(errMsg)
+      this.hadError = true
+      this.consoleText.push(errMsg)
+    }
   }
 
   error(token: Token, message: string) {

@@ -24,9 +24,10 @@ export class StackOperation {
     //   .reverse()
     //   .toString()
     //   .padEnd(10, ' ')}`
-    let text = `${this.token.lexeme.padStart(8, ' ')} → [${this.stack}\nin ${
-      this.added
-    }, out ${this.removed}`
+    let text = `${this.stack}] ← ${this.token.lexeme}`
+    // let text = `${this.token.lexeme.padStart(8, ' ')} → [${this.stack}\nin ${
+    //   this.added
+    // }, out ${this.removed}`
     return text
   }
 }

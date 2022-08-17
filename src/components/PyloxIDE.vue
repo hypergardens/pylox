@@ -1,6 +1,8 @@
 <script>
 import Pylox from '../Pylox'
 import { Token } from '../Tokens'
+import { StandardLibrary } from '../StandardLib'
+import genetic from '../genetic'
 
 export default {
   name: 'app',
@@ -8,7 +10,6 @@ export default {
     return {
       code: 'a b c d e -1 @',
       consoleText: 'testConsole',
-      stackText: 'testStack',
       pylox: new Pylox(),
     }
   },
@@ -20,27 +21,23 @@ export default {
     runCode() {
       this.pylox = new Pylox()
       this.pylox.run(this.code)
-      this.stackText = `${this.pylox.interpreter.stack
-        // .map((e) => `${e.lexeme}#${e.uid}`)
-        .slice()
-        .reverse()
-        .join(',')}`
-      this.consoleText = `${this.pylox.consoleText}`
       // console.log(this.pylox.interpreter.stack)
+      console.log(this.pylox.interpreter.output())
     },
   },
   mounted: function () {
-    this.code = `pi:
-3.14
-pi;
-
+    this.code = `pi: 3.14 pi;
 tau: pi 2 * tau;
+
 "tau" exec`
     // console.log(this.pylox.parse(this.code))
     this.runCode()
-    // console.log(this.debugText)
     // this.$emit('input')
-    // console.log('mounted')
+  },
+  computed: {
+    stackText() {
+      return `${this.pylox.interpreter.stack.join(',') || ''}]`
+    },
   },
 }
 
@@ -58,78 +55,24 @@ count;
 
 1 count`
 let subProgTest = `0 a: 1 b: 2 b; 3 a; 4 a b`
-let ack = `
-// [m n
-ack0:
-1 del
-1 +
-ack0;
-
-cex:
-2 @ ? exec
-cex;
-
-// [top bot
-ackMaster:
-dup 0 ==
-"ack1" "ack0"
-2 @ ? exec
-ackMaster;
-
-ack1:
-1 @
-0 ==
-"ack10" "ack11"
-2 @ ? exec
-ack1;
-
-ack10:
-noop
-ack10;
-
-ack11:
-1 1 @ -
-ack11;
-
-// bot top
-    0   1 ackMaster`
 let basic = `pi:
 3.14
 pi;
 pi 2 *`
-// [2,3,2,1,4,0
-
-// let pylox = new Pylox()
-// pylox.run(subProgTest)
-// let tokens = pylox.tokens(`
-// @ 4
-// sq1:
-// sq1;
-// 1 2
-// `);
-// 1 2
-//     : square;
-// dup *
-//     ; square
-
-// let tokens = pylox.tokenise(source)
-// let tree = pylox.parse(source)
-// console.log(tokens)
-// console.log(tree)
 </script>
 <template>
   <div class="wrapper">
     <div class="left-column deb code-text">
       <pre
         class="debug-output"
-        v-for="operation in pylox.interpreter.stackOperations"
+        v-for="operation in pylox.interpreter.execOutput"
         >{{ operation }}
       </pre>
     </div>
 
     <div class="right-column">
       <div class="content stack-view code-text center">
-        [<span v-for="line in stackText">{{ line }}</span>
+        <pre>{{ stackText }}</pre>
       </div>
       <textarea
         spellcheck="false"
@@ -138,7 +81,7 @@ pi 2 *`
         @input.prevent="inputtedCode"
       ></textarea>
       <div class="footer console-view code-text center">
-        <span class="">Console: {{ consoleText }}</span>
+        <span class="">Console: {{ this.pylox.consoleText.join('\n') }}</span>
       </div>
     </div>
   </div>

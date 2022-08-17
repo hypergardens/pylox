@@ -21,7 +21,6 @@ type LibraryType = {
 export const StandardLibrary: LibraryType = {
   push: (interpreter: Interpreter, token: Token) => {
     interpreter.place(token, 0, token)
-    console.log(`added ${token}`)
     return new StackOperation(interpreter, { added: [token], removed: [] })
   },
 
@@ -119,7 +118,6 @@ export const StandardLibrary: LibraryType = {
     let termA = interpreter.pop(token)
     let termB = interpreter.pop(token)
     let newToken: Token
-    console.log(`addition`)
     if (termA.type === 'STRING' || termB.type === 'STRING') {
       console.log('string add')
       let newToken = new Token(

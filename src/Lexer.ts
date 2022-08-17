@@ -183,8 +183,6 @@ class Lexer {
 
   makeToken(type: string, literal: number | string | null = null) {
     let text = this.source.slice(this.start, this.current)
-    console.log(`text: ${text} literal: ${literal}`)
-    // let token = new Token(type, text, literal, this.xOff, this.yOff)
     let token = new Token(type, text, literal, this.xOff, this.yOff)
     this.xOff += text.length
     return token

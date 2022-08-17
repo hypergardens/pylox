@@ -8,11 +8,10 @@ class Interpreter {
   stack: Token[]
   ignoring: {}
   ptr: number[]
-  execOutput: string[]
+  execOutput: (string | StackOperation)[]
   steps: number
   maxSteps: number
   programs: string[]
-  stackOperations: StackOperation[]
 
   constructor(vm: Pylox) {
     canVisitTokens(this)
@@ -21,7 +20,6 @@ class Interpreter {
 
     this.tokens = []
     this.stack = []
-    this.stackOperations = []
     this.ignoring = {}
     this.ptr = []
     this.execOutput = []
@@ -35,7 +33,7 @@ class Interpreter {
   addStackOperation(stackOp: StackOperation) {
     stackOp.step = this.steps
     stackOp.token = this.peek()
-    this.stackOperations.push(stackOp)
+    this.execOutput.push(stackOp)
   }
   interpret() {
     let executed = false
@@ -43,7 +41,7 @@ class Interpreter {
 
     if (!silent) {
       this.execOutput.push(`╔════════╗`)
-      this.execOutput.push(`${this.programs.slice(1)}: exec`)
+      this.execOutput.push(`${this.programs.slice(1)}`)
     }
     try {
       // start executing topmost program
@@ -112,25 +110,12 @@ class Interpreter {
     return true
   }
 
-  peek() {
-    return this.tokens[this.getPtr()]
-  }
-  advancePtr() {
-    this.ptr[this.ptr.length - 1]++
-  }
-  getPtr() {
-    return this.ptr[this.ptr.length - 1]
-  }
-  getProgram() {
-    return this.programs[this.programs.length - 1]
-  }
-
   visitWORDtoken(token: Token) {
     let word = token.lexeme
 
     if (StandardLibrary[word] !== undefined) {
       let operation: StackOperation = StandardLibrary[word](this, token)
-      this.stackOperations.push(operation)
+      this.execOutput.push(operation)
     } else {
       // execute program
       // console.log(`Executing ${ word } program`);
@@ -181,7 +166,7 @@ class Interpreter {
     )
 
     let operation: StackOperation = StandardLibrary['push'](this, newToken)
-    this.stackOperations.push(operation)
+    this.execOutput.push(operation)
   }
 
   top(token: Token, depth: number): Token {
@@ -231,6 +216,10 @@ class Interpreter {
     this.vm.consoleText.push(msg)
   }
 
+  output() {
+    return this.stack.map((e) => e.literal)
+  }
+
   checkBools(token: Token, n = 0) {
     // check 0 or 1
     for (let i = 0; i < n; i++) {
@@ -239,6 +228,7 @@ class Interpreter {
       this.checkBool(token, value)
     }
   }
+
   checkBool(token: Token, value) {
     if ([1, 0].indexOf(value) === -1) {
       throw {
@@ -247,19 +237,38 @@ class Interpreter {
       }
     }
   }
+
   checkStackSize(token, n = 0) {
     if (this.stack.length < n)
       throw { token, message: `Insufficient stack size: ${n}.` }
   }
+
   checkNumber(token, term) {
     if (!(!isNaN(parseFloat(term)) && isFinite(term))) {
       throw { token, message: `${term} is not a number.` }
     }
   }
+
   checkInt(token, term) {
     if (!Number.isInteger(term)) {
       throw { token, message: `${term} is not an integer.` }
     }
+  }
+
+  peek() {
+    return this.tokens[this.getPtr()]
+  }
+
+  advancePtr() {
+    this.ptr[this.ptr.length - 1]++
+  }
+
+  getPtr() {
+    return this.ptr[this.ptr.length - 1]
+  }
+
+  getProgram() {
+    return this.programs[this.programs.length - 1]
   }
 }
 
