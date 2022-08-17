@@ -1,5 +1,5 @@
 <script>
-import Pylox from '../Stox'
+import Stox from '../Stox'
 import { Token } from '../Tokens'
 import { StandardLibrary } from '../StandardLib'
 // import genetic from '../genetic'
@@ -10,7 +10,7 @@ export default {
     return {
       code: 'a b c d e -1 @',
       consoleText: 'testConsole',
-      stox: new Pylox(),
+      stox: new Stox(),
     }
   },
   methods: {
@@ -19,7 +19,7 @@ export default {
       this.runCode()
     },
     runCode() {
-      this.stox = new Pylox()
+      this.stox = new Stox()
       this.stox.run(this.code)
       // console.log(this.stox.interpreter.stack)
       console.log(this.stox.interpreter.output())

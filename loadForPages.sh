@@ -3,6 +3,7 @@
 npm run build
 
 # force copy build to docs
+rm -rf docs/*
 cp -r dist/* docs/
 rm -rf dist/*
 
