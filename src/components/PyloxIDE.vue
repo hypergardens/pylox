@@ -26,16 +26,12 @@ export default {
     },
   },
   mounted: function () {
-    this.code = `cex:
-2 @ ? exec
-cex;
-a: 5 4 a;
-
-b: 6 b;
-
-1 "b" "a"
-cex
-"done"`
+    this.code = `
+1 "one" #
+2 "two" #
+3 "three" #
+10000
+"one" @`
     // console.log(this.pylox.parse(this.code))
     this.runCode()
     // this.$emit('input')
@@ -60,7 +56,22 @@ dup print 1 + dup
 count;
 
 1 count`
+let cexAmple = `cex:
+2 @ ? exec
+cex;
+a: 5 4 a;
+
+b: 6 b;
+
+1 "b" "a"
+cex
+"done"`
 let subProgTest = `0 a: 1 b: 2 b; 3 a; 4 a b`
+let loopBuggy = `mul3:
+dup 3 # // 0 == "ism3" #
+mul3;
+
+11 mul3`
 let basic = `pi:
 3.14
 pi;

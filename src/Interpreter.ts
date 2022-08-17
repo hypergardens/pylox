@@ -49,7 +49,8 @@ class Interpreter {
     try {
       // start executing topmost program
       this.ptr.push(0)
-      while (this.getPtr() < this.tokens.length) {
+      // gives error when using number and #
+      while (!this.vm.hadError && this.getPtr() < this.tokens.length) {
         let executedNow = this.execToken()
         executed = executed || executedNow
         this.advancePtr()
@@ -221,6 +222,11 @@ class Interpreter {
     }
   }
 
+  indexOf(token: Token) {
+    let index = this.stack.length - 1 - this.stack.indexOf(token)
+    return index
+  }
+
   print(msg: string) {
     this.vm.consoleText.push(msg)
   }
@@ -261,6 +267,13 @@ class Interpreter {
   checkInt(token, term): boolean {
     if (!Number.isInteger(term)) {
       throw { token, message: `${term} is not an integer.` }
+      return false
+    }
+    return true
+  }
+  checkString(token, term): boolean {
+    if (!(typeof term === 'string' || term instanceof String)) {
+      throw { token, message: `${term} is not a string.` }
       return false
     }
     return true

@@ -32,16 +32,76 @@ export const StandardLibrary: LibraryType = {
   /////////////////////
 
   '@': (interpreter: Interpreter, token: Token) => {
-    interpreter.checkStackSize(token, 1)
-    let depthToken = interpreter.pop(token)
-    let depth = <number>depthToken.literal
-    interpreter.checkInt(token, depth)
-    interpreter.checkStackSize(token, depth)
-    let pluckedToken = interpreter.pluck(token, depth)
-    interpreter.place(token, 0, pluckedToken)
+    interpreter.checkStackSize(token, 2)
+    let pullToken = interpreter.pop(token)
+    if (pullToken.type === 'NUMBER') {
+      // 2 @
+      let depth = <number>pullToken.literal
+      interpreter.checkInt(token, depth)
+      interpreter.checkStackSize(token, depth)
+      let pluckedToken = interpreter.pluck(token, depth)
+      interpreter.place(token, 0, pluckedToken)
+      return new StackOperation(interpreter, {
+        added: [pluckedToken],
+        removed: [pullToken, pluckedToken],
+      })
+    } else if (pullToken.type === 'STRING') {
+      // "pi" @
+      let name = <string>pullToken.literal
+      let matchingName = interpreter.stack.filter((tok) => tok.name === name)
+      console.log(matchingName)
+      if (matchingName.length > 0) {
+        if (matchingName.length > 1) {
+          interpreter.vm.error(token, `Multiple named tokens: #${name}`)
+        }
+        let foundToken = matchingName[0]
+        let index =
+          interpreter.stack.length - 1 - interpreter.stack.indexOf(foundToken)
+        interpreter.pluck(token, index)
+        interpreter.place(token, 0, foundToken)
+
+        return new StackOperation(interpreter, {
+          added: [foundToken],
+          removed: [pullToken, foundToken],
+        })
+      } else {
+        interpreter.vm.error(token, `Named token not found: #${name}`)
+
+        return new StackOperation(interpreter, {
+          added: [],
+          removed: [],
+        })
+      }
+    } else {
+      interpreter.vm.error(
+        token,
+        `Argument to pull token should be string or number. Found: ${pullToken.type}`
+      )
+      return new StackOperation(interpreter, {
+        added: [],
+        removed: [],
+      })
+    }
+  },
+
+  // 3.14 "pi"] #
+  '#': (interpreter: Interpreter, token: Token) => {
+    interpreter.checkStackSize(token, 2)
+    let nameToken = interpreter.pop(token)
+    interpreter.checkString(token, nameToken.literal)
+    let namedToken = interpreter.pop(token)
+    let newToken = new Token(
+      namedToken.type,
+      namedToken.lexeme,
+      namedToken.literal,
+      namedToken.xOff,
+      namedToken.yOff
+    )
+    newToken.setName(<string>nameToken.literal)
+    interpreter.place(token, 0, newToken)
     return new StackOperation(interpreter, {
-      added: [pluckedToken],
-      removed: [depthToken, pluckedToken],
+      added: [newToken],
+      removed: [nameToken, namedToken],
     })
   },
 
@@ -308,7 +368,7 @@ function makeBinaryOperation(
     let termA = tokenA.literal
     interpreter.checkNumber(token, tokenA.literal)
     let tokenB = interpreter.pop(token)
-    let termB = tokenA.literal
+    let termB = tokenB.literal
     interpreter.checkNumber(token, tokenB.literal)
 
     if (castOperandsToBool) {
@@ -318,6 +378,7 @@ function makeBinaryOperation(
       termB = termB === 0 ? 0 : 1
     }
     let evalString = `${termA} ${symbol} ${termB}`
+    console.log(evalString)
     let result = eval(evalString)
     if (castResultToBool) result = result === 0 || result === false ? 0 : 1
     let newToken = new Token(

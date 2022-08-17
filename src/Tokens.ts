@@ -1,3 +1,5 @@
+import { stringifyStyle } from '@vue/shared'
+
 export const TokenTypes = [
   `WORD`,
   `LABEL`,
@@ -19,6 +21,7 @@ export class Token {
   lexeme: string
   literal: number | string | null
   programs: Array<string>
+  name: string
   constructor(
     type: string,
     lexeme: string,
@@ -34,7 +37,7 @@ export class Token {
     this.uid = Token.uid
 
     this.type = type
-
+    this.name = ''
     // check known type of token
     if (TokenTypes.indexOf(this.type) === -1) {
       throw `Unrecognised type: ${type}`
@@ -59,13 +62,19 @@ export class Token {
     }
   }
 
+  setName(name: string) {
+    this.name = name
+  }
+
   accept(visitor) {
     visitor[`visit${this.type}token`](this)
   }
 
   toString() {
     // VULN: confusion between literal and lexeme
-    return `${this.literal ? this.literal : this.lexeme}`
+    return `${this.literal ? this.literal : this.lexeme}${
+      this.name !== '' ? '#' + this.name : ''
+    }`
     // return `${this.literal ? `V${this.literal}` : `L${this.lexeme}`}#${
     //   this.uid
     // }`
