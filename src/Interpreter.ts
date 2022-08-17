@@ -9,7 +9,7 @@ class Interpreter {
   ignoring: {}
   ptr: number[]
   execOutput: (string | StackOperation)[]
-  steps: number
+  step: number
   maxSteps: number
   programs: string[]
 
@@ -23,7 +23,7 @@ class Interpreter {
     this.ignoring = {}
     this.ptr = []
     this.execOutput = []
-    this.steps = 0
+    this.step = 0
     this.maxSteps = 2000
     this.programs = ['main']
   }
@@ -31,17 +31,20 @@ class Interpreter {
     this.tokens.push(...tokens)
   }
   addStackOperation(stackOp: StackOperation) {
-    stackOp.step = this.steps
     stackOp.token = this.peek()
     this.execOutput.push(stackOp)
   }
-  interpret() {
+  interpret(token: Token | null = null) {
     let executed = false
     let silent = !this.shouldLog()
-
+    // if (token) {
+    //   let stackOp = new StackOperation(this, { added: [], removed: [token] })
+    // }
     if (!silent) {
       this.execOutput.push(`╔════════╗`)
-      this.execOutput.push(`${this.programs.slice(1)}`)
+      // this.execOutput.push(`${this.programs.slice(1)}`)
+      this.execOutput.push(`${this.programs[this.programs.length - 1]}`)
+      // let stackOp = new StackOperation()
     }
     try {
       // start executing topmost program
@@ -86,11 +89,11 @@ class Interpreter {
         (program !== 'main' && token.programs.indexOf(program) !== -1)
       ) {
         // console.log(`Accepting token @${this.ptr}{${token.lexeme} ${token.type}}`);
-        this.steps += 1
-        if (this.steps > this.maxSteps) {
+        if (this.step > this.maxSteps) {
           this.vm.error(token, 'Too many steps.')
           throw `INFINITE LOOP`
         } else {
+          // run token
           token.accept(this)
           return true
         }
@@ -114,14 +117,19 @@ class Interpreter {
     let word = token.lexeme
 
     if (StandardLibrary[word] !== undefined) {
+      // standard library word
       let operation: StackOperation = StandardLibrary[word](this, token)
+      this.step += 1
       this.execOutput.push(operation)
     } else {
       // execute program
       // console.log(`Executing ${ word } program`);
       this.programs.push(word)
       // TODO: executed refinements for empty programs
-      let executed = this.interpret()
+      let stackOp = new StackOperation(this, { added: [], removed: [token] })
+      this.step += 1
+      this.addStackOperation(stackOp)
+      let executed = this.interpret(token)
       if (!executed) {
         this.vm.error(token, `Word not found.`)
       }
@@ -166,6 +174,7 @@ class Interpreter {
     )
 
     let operation: StackOperation = StandardLibrary['push'](this, newToken)
+    this.step += 1
     this.execOutput.push(operation)
   }
 
@@ -249,10 +258,12 @@ class Interpreter {
     }
   }
 
-  checkInt(token, term) {
+  checkInt(token, term): boolean {
     if (!Number.isInteger(term)) {
       throw { token, message: `${term} is not an integer.` }
+      return false
     }
+    return true
   }
 
   peek() {

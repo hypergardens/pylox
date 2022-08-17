@@ -119,7 +119,6 @@ export const StandardLibrary: LibraryType = {
     let termB = interpreter.pop(token)
     let newToken: Token
     if (termA.type === 'STRING' || termB.type === 'STRING') {
-      console.log('string add')
       let newToken = new Token(
         'STRING',
         // @ts-ignore
@@ -129,14 +128,12 @@ export const StandardLibrary: LibraryType = {
         token.xOff,
         token.yOff
       )
-      console.log(newToken)
       interpreter.place(token, 0, newToken)
       return new StackOperation(interpreter, {
         added: [newToken],
         removed: [termA, termB],
       })
     } else if (termA.type === 'NUMBER' && termB.type === 'NUMBER') {
-      console.log('number add')
       let newToken = new Token(
         'NUMBER',
         // @ts-ignore
@@ -161,20 +158,35 @@ export const StandardLibrary: LibraryType = {
     let termA = interpreter.pop(token)
     let termB = interpreter.pop(token)
     if (termA.type === 'STRING' && termB.type === 'NUMBER') {
-      let newToken = new Token(
-        'STRING',
-        // @ts-ignore
-        `${termA.literal.repeat(termB.literal)}`,
-        // @ts-ignore
-        termA.literal.repeat(termB.literal),
-        termA.xOff,
-        termA.yOff
-      )
-      interpreter.place(token, 0, newToken)
-      return new StackOperation(interpreter, {
-        added: [newToken],
-        removed: [termA, termB],
-      })
+      // check positive integer
+      if (
+        !(
+          <number>termB.literal > 0 &&
+          interpreter.checkInt(token, termB.literal)
+        )
+      ) {
+        interpreter.vm.error(token, 'Repeat number must be positive integer')
+        return new StackOperation(interpreter, {
+          added: [],
+          removed: [],
+        })
+      } else {
+        // repeat string
+        let newToken = new Token(
+          'STRING',
+          // @ts-ignore
+          `${termA.literal.repeat(termB.literal)}`,
+          // @ts-ignore
+          termA.literal.repeat(termB.literal),
+          termA.xOff,
+          termA.yOff
+        )
+        interpreter.place(token, 0, newToken)
+        return new StackOperation(interpreter, {
+          added: [newToken],
+          removed: [termA, termB],
+        })
+      }
     } else {
       interpreter.checkNumber(token, termA.literal)
       interpreter.checkNumber(token, termB.literal)
@@ -252,10 +264,11 @@ export const StandardLibrary: LibraryType = {
       execToken.yOff
     )
     interpreter.visitWORDtoken(newToken)
-    return new StackOperation(interpreter, {
+    let stackOp = new StackOperation(interpreter, {
       added: [],
       removed: [execToken],
     })
+    return stackOp
   },
 
   print: (interpreter: Interpreter, token: Token) => {

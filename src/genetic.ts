@@ -3,7 +3,7 @@ import Pylox from './Pylox'
 import dist from '@vitejs/plugin-vue'
 
 export default null
-let numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+let numbers = [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 let letters = 'abcdefghijklmnopqrstuwxyz'
 let ops = Object.keys(StandardLibrary)
 
@@ -21,8 +21,8 @@ class Script {
       [4, 'number'],
       [2, 'char'],
       [2, 'word'],
-      [1, 'labelStart'],
-      [1, 'labelEnd'],
+      [0, 'labelStart'],
+      [0, 'labelEnd'],
     ]
     this.mutChance = 0.01
     this.score = -1000
@@ -46,7 +46,9 @@ class Script {
         this.source.push(value)
         break
       case 'word':
-        value = pick(Object.keys(StandardLibrary))
+        do {
+          value = pick(Object.keys(StandardLibrary))
+        } while (value === 'push')
         this.source.push(value)
         break
       case 'labelStart':
@@ -98,20 +100,36 @@ function score(script: Script, targetStack: (string | number)[]) {
   // console.log(`RUNNING ${scripts[i].script.join(' ')}`)
   let total = 1000
   for (let i = 0; i < targetStack.length; i++) {
-    if (script.output.length >= i - 1) {
+    if (script.output.length > i) {
       // has output for stack element
       let out = script.output[i]
       let target = targetStack[i]
-      if (typeof out === 'number' && typeof target === 'number') {
-        total -= Math.abs(out - target)
-      } else if (typeof out === 'string' && typeof target === 'string') {
-        total -= Math.abs(out.charCodeAt(0) - target.charCodeAt(0))
-      } else {
-        total -= 100
+      if (typeof target === 'number') {
+        if (typeof out === 'string') {
+          // number vs [string]
+          total -= Math.abs(target)
+        } else if (typeof out === 'number') {
+          // number vs [number]
+          total -= Math.abs(out - target) - 1
+        }
+      } else if (typeof target === 'string') {
+        if (typeof out === 'string') {
+          // string vs [string]
+          for (let i = 0; i < target.length; i++) {
+            if (out.length > i) {
+              total -= Math.abs(out.charCodeAt(i) - target.charCodeAt(i))
+            } else {
+              total -= 10
+            }
+          }
+        } else if (typeof out === 'number') {
+          // string vs [number]
+          total -= 30
+        }
       }
     } else {
       // no output for stack element
-      total -= 200
+      total -= 100
     }
   }
   return total
@@ -119,20 +137,21 @@ function score(script: Script, targetStack: (string | number)[]) {
 
 // build 100 random scripts
 let scripts: Script[] = []
-for (let i = 0; i < 100; i++) {
+let populationMax = 60
+let maxGenerations = 10000
+let generationPrint = maxGenerations / 100
+for (let i = 0; i < populationMax; i++) {
   scripts[i] = new Script()
-  scripts[i].size = rand(20)
+  scripts[i].size = rand(30)
   scripts[i].build()
 }
 
-let maxGenerations = 10
 for (let generation = 0; generation < maxGenerations; generation++) {
-  console.log(`generation ${generation}/${maxGenerations}`)
   // score scripts
   for (let script of scripts) {
     script.run()
     try {
-      let scriptScore = score(script, [11])
+      let scriptScore = score(script, [11, 12, 13])
       script.score = scriptScore
     } catch (error) {}
   }
@@ -140,20 +159,23 @@ for (let generation = 0; generation < maxGenerations; generation++) {
   // sort scripts
   scripts.sort((a, b) => b.score - a.score)
 
+  if (generation % generationPrint === 0) {
+    console.log(`         generation ${generation}/${maxGenerations}`)
+    console.log(
+      scripts
+        .slice(0, 5)
+        .map((s) => `${s.score} [${s.output}] {${s.source.join(' ')}}`)
+        .join('\n')
+    )
+  }
   // view top 5
-  console.log(
-    scripts
-      .slice(0, 5)
-      .map((s) => `${s.score} [${s.output}] {${s.source.join(' ')}}`)
-      .join('\n')
-  )
 
   // map to [score, script]
   // let scoreMap = scripts.map((s) => [s.score, s])
   // select parents through tournament
   let parents: Script[] = []
   let tournament: Script[]
-  let parentsSelected = 30
+  let parentsSelected = Math.floor(populationMax / 4)
   let prob = 0.5
 
   for (let i = 0; i < parentsSelected; i++) {
@@ -170,11 +192,9 @@ for (let generation = 0; generation < maxGenerations; generation++) {
     // console.log(tournamentProbs)
     parents.push(tournament[0])
   }
-  console.log(`Tournament done`)
-  console.log(parents)
   scripts = []
   // create children and put them into scripts
-  for (let i = 0; i < 100; i++) {
+  for (let i = 0; i < populationMax; i++) {
     // let parentAi = rand(parents.length)
     // let parentA = parents.splice(parentAi, 1)[0]
     // let parentBi = rand(parents.length)

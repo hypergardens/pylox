@@ -35,7 +35,6 @@ class Lexer {
       // -
       if (this.isDigit(this.peek())) {
         // -123
-        console.log(`negative nr`)
         this.number()
       } else {
         // - :abc

@@ -12,7 +12,7 @@ export class StackOperation {
     interpreter: Interpreter,
     { added, removed }: { added: Token[]; removed: Token[] }
   ) {
-    this.step = interpreter.steps
+    this.step = interpreter.step
     this.token = interpreter.peek()
     this.added = added
     this.removed = removed
@@ -24,7 +24,7 @@ export class StackOperation {
     //   .reverse()
     //   .toString()
     //   .padEnd(10, ' ')}`
-    let text = `${this.stack}] ← ${this.token.lexeme}`
+    let text = `${this.stack}] ← ${this.token.lexeme} at ${this.step}`
     // let text = `${this.token.lexeme.padStart(8, ' ')} → [${this.stack}\nin ${
     //   this.added
     // }, out ${this.removed}`

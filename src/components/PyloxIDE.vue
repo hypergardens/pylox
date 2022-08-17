@@ -2,7 +2,7 @@
 import Pylox from '../Pylox'
 import { Token } from '../Tokens'
 import { StandardLibrary } from '../StandardLib'
-import genetic from '../genetic'
+// import genetic from '../genetic'
 
 export default {
   name: 'app',
@@ -26,10 +26,16 @@ export default {
     },
   },
   mounted: function () {
-    this.code = `pi: 3.14 pi;
-tau: pi 2 * tau;
+    this.code = `cex:
+2 @ ? exec
+cex;
+a: 5 4 a;
 
-"tau" exec`
+b: 6 b;
+
+1 "b" "a"
+cex
+"done"`
     // console.log(this.pylox.parse(this.code))
     this.runCode()
     // this.$emit('input')
