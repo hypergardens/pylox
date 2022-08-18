@@ -50,8 +50,8 @@ class Stox {
 
   parse(source: string) {
     // TODO: figure out if a separate scanner refresh is necessary
-    this.parser = new Parser(this)
     let tokens = this.tokenise(source)
+    this.parser = new Parser(this)
     return this.parser.parse(tokens)
   }
 
