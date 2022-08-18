@@ -10,7 +10,6 @@ class Stox {
   interpreter: Interpreter
   stack: Token[]
   consoleText: string[]
-  silentPrograms: {}
   muffle: boolean
 
   constructor(muffle = false) {
@@ -21,7 +20,6 @@ class Stox {
     this.stack = []
     this.consoleText = []
     this.hadError = false
-    this.silentPrograms = {}
     this.muffle = muffle
     Token.uid = 0
   }

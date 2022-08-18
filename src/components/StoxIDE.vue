@@ -24,12 +24,11 @@ export default {
     },
   },
   mounted: function () {
-    this.code = `
-1 "one" #
-2 "two" #
-3 "three" #
-10000
-"two" @`
+    this.code = `pi:
+3.14
+pi;
+
+pi 2 *`
     this.runCode()
     // this.$emit('input')
   },

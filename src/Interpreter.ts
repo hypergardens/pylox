@@ -29,6 +29,7 @@ class Interpreter {
   }
   loadTokens(tokens: Token[]): void {
     this.tokens.push(...tokens)
+    console.log(`${this.tokens.length} tokens loaded`)
   }
   addStackOperation(stackOp: StackOperation) {
     stackOp.token = this.peek()
@@ -36,16 +37,13 @@ class Interpreter {
   }
   interpret(token: Token | null = null) {
     let executed = false
-    let silent = !this.shouldLog()
     // if (token) {
     //   let stackOp = new StackOperation(this, { added: [], removed: [token] })
     // }
-    if (!silent) {
-      this.execOutput.push(`╔════════╗`)
-      // this.execOutput.push(`${this.programs.slice(1)}`)
-      this.execOutput.push(`${this.programs[this.programs.length - 1]}`)
-      // let stackOp = new StackOperation()
-    }
+    this.execOutput.push(`╔════════╗`)
+    // this.execOutput.push(`${this.programs.slice(1)}`)
+    this.execOutput.push(`${this.programs[this.programs.length - 1]}`)
+    // let stackOp = new StackOperation()
     try {
       // start executing topmost program
       this.ptr.push(0)
@@ -66,9 +64,7 @@ class Interpreter {
       }
     }
 
-    if (!silent) {
-      this.execOutput.push(`╚════════╝`)
-    }
+    this.execOutput.push(`╚════════╝`)
     return executed
   }
 
@@ -103,15 +99,6 @@ class Interpreter {
         return false
       }
     }
-  }
-  shouldLog() {
-    // TODO: different logic needed here
-    for (let program of this.programs) {
-      if (this.vm.silentPrograms[program] === true) {
-        return false
-      }
-    }
-    return true
   }
 
   visitWORDtoken(token: Token) {

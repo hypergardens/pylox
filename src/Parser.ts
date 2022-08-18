@@ -66,15 +66,6 @@ class Parser {
       // add program to array
       let label = lexeme.slice(0, lexeme.length - 1)
       // console.log(`at token ${token} starting label ${label}`);
-
-      // eat whitespace
-      while (this.match('WHITESPACE')) {}
-
-      // if followed by comment, nonlog
-      if (this.peek().type === 'COMMENT') {
-        this.vm.silentPrograms[label] = true
-      }
-
       this.programs.push(label)
       // exec till label;
     } else if (lexeme[lexeme.length - 1] === `;`) {
