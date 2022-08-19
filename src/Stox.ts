@@ -17,7 +17,6 @@ class Stox {
     this.lexer = new Lexer(this)
     this.parser = new Parser(this)
     this.interpreter = new Interpreter(this)
-    this.stack = []
     this.consoleText = []
     this.hadError = false
     this.muffle = muffle
@@ -53,11 +52,15 @@ class Stox {
     return this.parser.parse(tokens)
   }
 
-  run(source: string) {
+  load(source: string) {
     // TODO: figure out if a separate interpreter refresh is necessary
     this.interpreter = new Interpreter(this)
     let tokens = this.parse(source)
     this.interpreter.loadTokens(tokens)
+  }
+
+  run(source: string) {
+    this.load(source)
     return this.interpreter.interpret()
   }
 }

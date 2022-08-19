@@ -9,12 +9,12 @@ class Lexer {
   tokens: Token[]
   vm: Stox
 
-  constructor(vm: Stox) {
+  constructor(vm: Stox, xOff = 0, yOff = 0) {
     this.source = ''
     this.start = 0
     this.current = 0
-    this.xOff = 0
-    this.yOff = 0
+    this.xOff = xOff
+    this.yOff = yOff
     this.tokens = []
     this.vm = vm
   }
@@ -124,7 +124,6 @@ class Lexer {
     if (this.isAtEnd()) {
       this.vm.error(this.makeToken('STRING'), 'Unterminated string.')
     }
-    // TODO: "pi" vs pi
     // the closing "
     this.advance()
     let value = this.source.slice(this.start + 1, this.current - 1)

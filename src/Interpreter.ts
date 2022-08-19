@@ -111,7 +111,6 @@ class Interpreter {
       this.execOutput.push(operation)
     } else {
       // execute program
-      // console.log(`Executing ${ word } program`);
       this.programs.push(word)
       // TODO: executed refinements for empty programs
       let stackOp = new StackOperation(this, { added: [], removed: [token] })
@@ -122,20 +121,7 @@ class Interpreter {
         this.vm.error(token, `Word not found.`)
       }
       this.programs.pop()
-      // this.execOutput.push(`end exec [${this.stack.slice().reverse().toString().padEnd(10, " ")}`);
     }
-
-    // case 'exec':
-    //   this.checkStackSize(token, 1)
-    //   termA = this.stack.pop()
-    //   this.visitWORDtoken({ lexeme: termA })
-    //   break
-
-    // case '!':
-    //   this.checkStackSize(token, 1)
-    //   this.checkBools(token, 1)
-    //   this.stack.push(1 - Number(this.stack.pop()))
-    //   break
   }
   visitSTRINGtoken(token: Token) {
     this.addLiteralToken(token)

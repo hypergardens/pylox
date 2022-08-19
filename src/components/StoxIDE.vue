@@ -2,6 +2,8 @@
 import Stox from '../Stox'
 import { Token } from '../Tokens'
 import { StandardLibrary } from '../StandardLib'
+import TokenViewVue from './TokenView.vue'
+import TokenView from './TokenView.vue'
 // import genetic from '../genetic'
 
 export default {
@@ -27,8 +29,7 @@ export default {
     this.code = `pi:
 3.14
 pi;
-
-pi 2 *`
+"pi" exec`
     this.runCode()
     // this.$emit('input')
   },
@@ -37,6 +38,7 @@ pi 2 *`
       return `${this.stox.interpreter.stack.join(',') || ''}]`
     },
   },
+  components: { TokenView },
 }
 
 let minusTest = `-1 - 2 --3 - - 4 -2a - b`
@@ -62,7 +64,6 @@ b: 6 b;
 1 "b" "a"
 cex
 "done"`
-let subProgTest = `0 a: 1 b: 2 b; 3 a; 4 a b`
 let loopBuggy = `mul3:
 dup 3 # // 0 == "ism3" #
 mul3;
@@ -75,13 +76,13 @@ pi 2 *`
 </script>
 <template>
   <div class="wrapper">
-    <div class="left-column deb code-text">
+    <div class="column deb code-text">
       <pre class="debug-output" v-for="operation in stox.interpreter.execOutput"
         >{{ operation }}
       </pre>
     </div>
 
-    <div class="right-column">
+    <div class="column">
       <div class="content stack-view code-text center">
         <pre>{{ stackText }}</pre>
       </div>
@@ -91,8 +92,18 @@ pi 2 *`
         v-model="code"
         @input.prevent="inputtedCode"
       ></textarea>
+
       <div class="footer console-view code-text center">
         <span class="">Console: {{ this.stox.consoleText.join('\n') }}</span>
+      </div>
+    </div>
+    <div class="column center">
+      <div class="token-analysis">
+        <TokenView
+          :token="token"
+          v-for="token of this.stox.interpreter.tokens"
+          >{{ `${token.lexeme}_${token.type}` }}</TokenView
+        >
       </div>
     </div>
   </div>
@@ -126,6 +137,12 @@ pi 2 *`
 .code-editing-area {
   width: 400px;
   height: 300px;
+}
+
+.token-analysis {
+  width: 400px;
+  height: 300px;
+  background-color: rgb(39, 39, 39);
 }
 
 .stack-view {
