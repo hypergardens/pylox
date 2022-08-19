@@ -20,7 +20,7 @@ export class Token {
   yOff: number
   lexeme: string
   literal: number | string | null
-  programs: Array<string>
+  programs: string[]
   name: string
   constructor(
     type: string,

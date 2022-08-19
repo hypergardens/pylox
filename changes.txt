@@ -1,0 +1,27 @@
+execToken
+  just takes 1 token
+    if literal: add to stack
+      StackOp(pushElem)
+    if word:
+      StandardLib word?
+        StackOp(vm)
+      if exec:
+        stringToTokens(lastToken), inline them
+      macro:
+        inline getTokens(macro)
+
+Parser
+  no longer tags tokens
+
+Interpreter
+  handles label start and end errors
+    take from Parser
+  keeps track of program ptr and programs state
+
+StandardLib
+  ? handle exec in Interpreter?
+  ? should 
+
+token
+  .setPrograms
+    move to Interpreter

@@ -26,10 +26,10 @@ export default {
     },
   },
   mounted: function () {
-    this.code = `pi:
-3.14
-pi;
-"pi" exec`
+    this.code = `count:
+1 2 3
+count;
+0 count 4`
     this.runCode()
     // this.$emit('input')
   },

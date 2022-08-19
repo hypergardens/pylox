@@ -12,10 +12,10 @@ class Interpreter {
   step: number
   maxSteps: number
   programs: string[]
+  maxDepth: number
 
   constructor(vm: Stox) {
     canVisitTokens(this)
-
     this.vm = vm
 
     this.tokens = []
@@ -25,24 +25,18 @@ class Interpreter {
     this.execOutput = []
     this.step = 0
     this.maxSteps = 2000
+    this.maxDepth = 10
     this.programs = ['main']
   }
   loadTokens(tokens: Token[]): void {
     this.tokens.push(...tokens)
     console.log(`${this.tokens.length} tokens loaded`)
   }
-  addStackOperation(stackOp: StackOperation) {
-    stackOp.token = this.peek()
-    this.execOutput.push(stackOp)
-  }
-  interpret(token: Token | null = null) {
+  interpret() {
     let executed = false
-    // if (token) {
-    //   let stackOp = new StackOperation(this, { added: [], removed: [token] })
-    // }
     this.execOutput.push(`╔════════╗`)
-    // this.execOutput.push(`${this.programs.slice(1)}`)
-    this.execOutput.push(`${this.programs[this.programs.length - 1]}`)
+    this.execOutput.push(`${this.programs}`)
+    // this.execOutput.push(`${this.programs[this.programs.length - 1]}`)
     // let stackOp = new StackOperation()
     try {
       // start executing topmost program
@@ -100,27 +94,34 @@ class Interpreter {
       }
     }
   }
+  execWord(token: Token) {
+    // TODO: executed refinements for empty programs
+    let stackOp = new StackOperation(this, {
+      added: [],
+      removed: [token],
+    })
+    this.step += 1
+    this.execOutput.push(stackOp)
 
+    let word = token.lexeme
+    // execute program
+    this.programs.push(word)
+    let executed = this.interpret()
+    if (!executed) {
+      this.vm.error(token, `Word not found.`)
+    }
+    this.programs.pop()
+  }
   visitWORDtoken(token: Token) {
     let word = token.lexeme
 
     if (StandardLibrary[word] !== undefined) {
       // standard library word
       let operation: StackOperation = StandardLibrary[word](this, token)
-      this.step += 1
       this.execOutput.push(operation)
-    } else {
-      // execute program
-      this.programs.push(word)
-      // TODO: executed refinements for empty programs
-      let stackOp = new StackOperation(this, { added: [], removed: [token] })
       this.step += 1
-      this.addStackOperation(stackOp)
-      let executed = this.interpret(token)
-      if (!executed) {
-        this.vm.error(token, `Word not found.`)
-      }
-      this.programs.pop()
+    } else {
+      this.execWord(token)
     }
   }
   visitSTRINGtoken(token: Token) {
@@ -253,16 +254,16 @@ class Interpreter {
     return true
   }
 
+  getPtr() {
+    return this.ptr[this.ptr.length - 1]
+  }
+
   peek() {
     return this.tokens[this.getPtr()]
   }
 
   advancePtr() {
     this.ptr[this.ptr.length - 1]++
-  }
-
-  getPtr() {
-    return this.ptr[this.ptr.length - 1]
   }
 
   getProgram() {

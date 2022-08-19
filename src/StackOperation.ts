@@ -17,6 +17,7 @@ export class StackOperation {
     this.added = added
     this.removed = removed
     this.stack = interpreter.stack.slice()
+    console.log(`stackOp`, this.token.lexeme)
   }
   toString() {
     // let text = `${this.token.lexeme.padStart(8, ' ')} → [${this.stack
