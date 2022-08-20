@@ -28,7 +28,7 @@ class Script {
     this.score = -1000
   }
   run() {
-    let vm = new Stox(true)
+    let vm = new Stox()
     vm.run(this.source.join(' '))
     this.output = vm.interpreter.output()
     return this.output

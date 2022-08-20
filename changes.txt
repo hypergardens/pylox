@@ -10,21 +10,9 @@ execToken
       macro:
         inline getTokens(macro)
 
-FIX:
-  tokens being collected wrong in getMacroTokens
-
 Parser
   stash into bin
-
-Interpreter
-  handles label start and end errors
-    take from Parser
-  keeps track of program ptr and programs state
 
 StandardLib
   ? handle exec in Interpreter?
   ? should 
-
-token
-  .setPrograms
-    move to Interpreter

@@ -1,5 +1,5 @@
-import Stox from './Stox'
-import { Token } from './Tokens'
+import Stox from '../src/Stox'
+import { Token } from '../src/Tokens'
 class Parser {
   vm: Stox
   current: number

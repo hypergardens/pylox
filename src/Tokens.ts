@@ -56,10 +56,7 @@ export class Token {
   }
 
   setPrograms(programs) {
-    this.programs = []
-    for (let program of programs) {
-      this.programs.push(program)
-    }
+    this.programs = [...programs]
   }
 
   setName(name: string) {
@@ -71,6 +68,7 @@ export class Token {
     return `${this.literal ? this.literal : this.lexeme}${
       this.name !== '' ? '#' + this.name : ''
     }`
+    // TODO: remember it's a terrible idea
     // return `${this.literal ? `V${this.literal}` : `L${this.lexeme}`}#${
     //   this.uid
     // }`

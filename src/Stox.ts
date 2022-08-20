@@ -29,8 +29,18 @@ class Stox {
     }
   }
 
-  stringToTokens(source: string) {
-    return new Lexer(this).scanTokens(source)
+  stringToTokens(source: string | Token) {
+    let lexer = new Lexer(this)
+    let tokens: Token[] = []
+    if (typeof source === 'string') {
+      tokens = lexer.scanTokens(source)
+    } else if (source instanceof Token) {
+      lexer.xOff = source.xOff + 1
+      lexer.yOff = source.yOff
+      tokens = lexer.scanTokens(source.lexeme)
+      tokens.forEach((t) => t.setPrograms(source.programs))
+    }
+    return tokens
   }
 
   load(source: string) {

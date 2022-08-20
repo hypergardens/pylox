@@ -27,7 +27,7 @@ class Interpreter {
     this.ptr = []
     this.execOutput = []
     this.step = 0
-    this.maxSteps = 200
+    this.maxSteps = 2000
     this.maxDepth = 10
     this.programs = []
     this.obsPrograms = {}
@@ -36,23 +36,18 @@ class Interpreter {
     // this.tokens.push(...tokens)
     this.sourceTokens = tokens.slice()
     this.tokens = this.getMacroTokens(null)
-    console.log(`${this.sourceTokens.length} tokens loaded`)
-    console.log(`${this.tokens.length} tokens ready to execute`)
+    // console.log(`${this.sourceTokens.length} tokens loaded`)
+    // console.log(`${this.tokens.length} tokens ready to execute`)
   }
   interpret() {
     let executed = false
     this.execOutput.push(`╔════════╗`)
     this.execOutput.push(`${this.programs}`)
     try {
-      // start executing topmost program
       this.ptr.push(0)
-      // gives error when using number and #
       while (!this.vm.hadError && this.getPtr() < this.tokens.length) {
-        console.log(`interpreting ${this.peek().lexeme}`)
-
         let executedNow = this.interpretToken()
         executed = executed || executedNow
-        this.advancePtr()
       }
       // exit to previous scope
       this.ptr.pop()
@@ -89,6 +84,7 @@ class Interpreter {
         ///////////////////////////////
         this[`visit${token.type}token`](token)
         this.step += 1
+        this.advancePtr()
         return true
       }
     }
@@ -105,6 +101,8 @@ class Interpreter {
     this.execOutput.push(stackOp)
     // inline macro tokens
     let macroTokens = this.getMacroTokens(token)
+    let programs = [...token.programs, token.lexeme]
+    macroTokens.forEach((t) => t.setPrograms(programs))
     this.tokens.splice(this.getPtr() + 1, 0, ...macroTokens)
   }
 

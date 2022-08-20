@@ -10,9 +10,6 @@ export default {
     coordForm() {
       return `${this.token.lexeme}@${this.token.xOff},${this.token.yOff}`
     },
-    logToConsole() {
-      console.log(this.coordForm())
-    },
   },
   computed: {
     newlineToken() {
@@ -30,6 +27,10 @@ export default {
     numberToken() {
       return this.token.type === 'NUMBER'
     },
+    progLength() {
+      // return '5px'
+      return 2 * this.token.programs.length + 1 + 'px'
+    },
   },
 }
 </script>
@@ -44,12 +45,13 @@ export default {
       'number-token': numberToken,
       'newline-token': newlineToken,
     }"
+    :style="{ 'border-width': progLength }"
     >{{ token.type === 'EOF' ? 'EOF' : token.lexeme }} <br v-if="newlineToken"
   /></span>
 </template>
 <style scoped>
 .token {
-  border: 1px solid white;
+  border: 1px solid;
   margin: 3px;
   padding: 3px;
   box-sizing: border-box;
