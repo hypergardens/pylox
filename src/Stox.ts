@@ -1,5 +1,4 @@
 import Lexer from './Lexer'
-import Parser from './Parser'
 import Interpreter from './Interpreter'
 import { Token } from './Tokens'
 
@@ -33,11 +32,6 @@ class Stox {
   stringToTokens(source: string) {
     return new Lexer(this).scanTokens(source)
   }
-
-  // parse(source: string) {
-  //   let tokens = this.stringToTokens(source)
-  //   return new Parser(this).parse(tokens)
-  // }
 
   load(source: string) {
     let tokens = this.stringToTokens(source)

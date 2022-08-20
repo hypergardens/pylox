@@ -14,7 +14,7 @@ FIX:
   tokens being collected wrong in getMacroTokens
 
 Parser
-  no longer tags tokens
+  stash into bin
 
 Interpreter
   handles label start and end errors
