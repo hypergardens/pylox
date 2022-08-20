@@ -12,38 +12,45 @@ class Interpreter {
   step: number
   maxSteps: number
   programs: string[]
+  obsPrograms: {}
   maxDepth: number
+  sourceTokens: Token[]
 
   constructor(vm: Stox) {
     canVisitTokens(this)
     this.vm = vm
 
     this.tokens = []
+    this.sourceTokens = []
     this.stack = []
     this.ignoring = {}
     this.ptr = []
     this.execOutput = []
     this.step = 0
-    this.maxSteps = 2000
+    this.maxSteps = 200
     this.maxDepth = 10
-    this.programs = ['main']
+    this.programs = []
+    this.obsPrograms = {}
   }
-  loadTokens(tokens: Token[]): void {
-    this.tokens.push(...tokens)
-    console.log(`${this.tokens.length} tokens loaded`)
+  loadSourceTokens(tokens: Token[]): void {
+    // this.tokens.push(...tokens)
+    this.sourceTokens = tokens.slice()
+    this.tokens = this.getMacroTokens(null)
+    console.log(`${this.sourceTokens.length} tokens loaded`)
+    console.log(`${this.tokens.length} tokens ready to execute`)
   }
   interpret() {
     let executed = false
     this.execOutput.push(`╔════════╗`)
     this.execOutput.push(`${this.programs}`)
-    // this.execOutput.push(`${this.programs[this.programs.length - 1]}`)
-    // let stackOp = new StackOperation()
     try {
       // start executing topmost program
       this.ptr.push(0)
       // gives error when using number and #
       while (!this.vm.hadError && this.getPtr() < this.tokens.length) {
-        let executedNow = this.execToken()
+        console.log(`interpreting ${this.peek().lexeme}`)
+
+        let executedNow = this.interpretToken()
         executed = executed || executedNow
         this.advancePtr()
       }
@@ -62,55 +69,100 @@ class Interpreter {
     return executed
   }
 
-  execToken(): boolean {
+  interpretToken(): boolean {
     let token = this.peek()
     // console.log(`execToken '${token.lexeme}'#${this.ptr}`);
-    // console.log(this.programs.toString());
     if (
       ['WHITESPACE', 'NEWLINE', 'LABEL', 'COMMENT'].indexOf(token.type) !== -1
     ) {
       // ignore whitespace and labels
       return false
     } else {
-      let program = this.getProgram()
-
       // main program or specific program token
-      if (
-        (program === 'main' && token.programs.length === 0) ||
-        (program !== 'main' && token.programs.indexOf(program) !== -1)
-      ) {
-        // console.log(`Accepting token @${this.ptr}{${token.lexeme} ${token.type}}`);
-        if (this.step > this.maxSteps) {
-          this.vm.error(token, 'Too many steps.')
-          throw `INFINITE LOOP`
-        } else {
-          // run token
-          token.accept(this)
-          return true
-        }
+      // console.log(`Accepting token @${this.ptr}{${token.lexeme} ${token.type}}`);
+      if (this.step > this.maxSteps) {
+        this.vm.error(token, 'Too many steps.')
+        throw `INFINITE LOOP`
       } else {
-        // console.log(`Skipping token @${this.ptr}{${token.lexeme} ${token.type}}`);
-        return false
+        ///////////////////////////////
+        // run token custom function //
+        ///////////////////////////////
+        this[`visit${token.type}token`](token)
+        this.step += 1
+        return true
       }
     }
   }
-  execWord(token: Token) {
+
+  execMacro(token: Token) {
     // TODO: executed refinements for empty programs
+
+    // create new stack operation
     let stackOp = new StackOperation(this, {
       added: [],
       removed: [token],
     })
-    this.step += 1
     this.execOutput.push(stackOp)
+    // inline macro tokens
+    let macroTokens = this.getMacroTokens(token)
+    this.tokens.splice(this.getPtr() + 1, 0, ...macroTokens)
+  }
 
-    let word = token.lexeme
-    // execute program
-    this.programs.push(word)
-    let executed = this.interpret()
-    if (!executed) {
-      this.vm.error(token, `Word not found.`)
+  getMacroTokens(wordToken: Token | null): Token[] {
+    // abc: abc;
+    // take previous token as label
+    let seekedToken = wordToken
+      ? wordToken
+      : new Token('STRING', 'main', 'main', 0, 0)
+    let word = seekedToken.lexeme
+    let macroTokens: Token[] = []
+    let inMacros = {}
+    let foundMacroBegin = wordToken ? false : true
+    let foundMacroEnd = wordToken ? false : true
+    for (let token of this.sourceTokens) {
+      let lexeme = token.lexeme
+
+      if (lexeme[lexeme.length - 1] === `:`) {
+        // MACRO:
+        let label = lexeme.slice(0, lexeme.length - 1)
+        inMacros[label] = true
+        if (label === word) foundMacroBegin = true
+        // console.log(`at token ${token} starting label ${label}`)
+      } else if (lexeme[lexeme.length - 1] === `;`) {
+        let label = lexeme.slice(0, lexeme.length - 1)
+        // MACRO;
+        if (inMacros[label]) {
+          inMacros[label] = false
+          if (label === word) foundMacroEnd = true
+          // console.log(`at token ${token} ending label ${label}`)
+        } else {
+          this.vm.error(token, 'Label finished without beginning.')
+        }
+      } else {
+        // collect tokens and inline them
+        let isWhitespace =
+          ['WHITESPACE', 'NEWLINE', 'COMMENT'].indexOf(token.type) !== -1
+        let inMainNoMacros =
+          !wordToken && !Object.keys(inMacros).some((mac) => inMacros[mac])
+        let inCorrectMacro = inMacros[word] || inMainNoMacros
+
+        // console.log({ isWhitespace, inCorrectMacro, inMainNoMacros })
+
+        if (!isWhitespace && inCorrectMacro) {
+          // collect macro token
+          macroTokens.push(token)
+          // console.log(`collecting ${seekedToken.lexeme}->${token.lexeme}`)
+        } else {
+          // ignore whitespace, comments and non-macro tokens
+          // console.log(`ignoring ${seekedToken.lexeme}->${token.lexeme}`)
+        }
+      }
     }
-    this.programs.pop()
+    if (!foundMacroBegin)
+      this.vm.error(seekedToken, 'No macro definition found')
+    else if (!foundMacroEnd)
+      this.vm.error(seekedToken, 'Macro definition unfinished found')
+    return macroTokens
   }
   visitWORDtoken(token: Token) {
     let word = token.lexeme
@@ -119,9 +171,9 @@ class Interpreter {
       // standard library word
       let operation: StackOperation = StandardLibrary[word](this, token)
       this.execOutput.push(operation)
-      this.step += 1
     } else {
-      this.execWord(token)
+      console.log(`exec macro ${token.lexeme}`)
+      this.execMacro(token)
     }
   }
   visitSTRINGtoken(token: Token) {
@@ -149,7 +201,6 @@ class Interpreter {
     )
 
     let operation: StackOperation = StandardLibrary['push'](this, newToken)
-    this.step += 1
     this.execOutput.push(operation)
   }
 
@@ -264,10 +315,6 @@ class Interpreter {
 
   advancePtr() {
     this.ptr[this.ptr.length - 1]++
-  }
-
-  getProgram() {
-    return this.programs[this.programs.length - 1]
   }
 }
 

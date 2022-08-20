@@ -34,14 +34,14 @@ class Stox {
     return new Lexer(this).scanTokens(source)
   }
 
-  parse(source: string) {
-    let tokens = this.stringToTokens(source)
-    return new Parser(this).parse(tokens)
-  }
+  // parse(source: string) {
+  //   let tokens = this.stringToTokens(source)
+  //   return new Parser(this).parse(tokens)
+  // }
 
   load(source: string) {
-    let tokens = this.parse(source)
-    this.interpreter.loadTokens(tokens)
+    let tokens = this.stringToTokens(source)
+    this.interpreter.loadSourceTokens(tokens)
   }
 
   run(source: string) {

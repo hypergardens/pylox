@@ -27,9 +27,10 @@ export default {
   },
   mounted: function () {
     this.code = `count:
-1 2 3
+1 2 3 a
 count;
-0 count 4`
+a: 4 a;
+0 count 5`
     this.runCode()
     // this.$emit('input')
   },

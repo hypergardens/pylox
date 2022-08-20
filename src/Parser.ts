@@ -43,7 +43,6 @@ class Parser {
     ) {
       return this.previous()
     } else if (this.match(`LABEL`)) {
-      return this.handleLabel()
     } else {
       // ???
       let token = this.peek()
@@ -53,37 +52,6 @@ class Parser {
       )
       // this.advance();
     }
-  }
-
-  handleLabel(): Token {
-    // abc: abc;
-    // take previous token as label
-    let token = this.previous()
-    let lexeme = token.lexeme
-
-    if (lexeme[lexeme.length - 1] === `:`) {
-      // abc:
-      // add program to array
-      let label = lexeme.slice(0, lexeme.length - 1)
-      // console.log(`at token ${token} starting label ${label}`);
-      this.programs.push(label)
-      // exec till label;
-    } else if (lexeme[lexeme.length - 1] === `;`) {
-      // remove program from array
-      let label = lexeme.slice(0, lexeme.length - 1)
-      // console.log(`at token ${token} ending label ${label}`);
-      if (this.programs.indexOf(label) !== -1) {
-        this.programs.splice(this.programs.indexOf(label), 1)
-      } else {
-        this.vm.error(token, 'Label finished without beginning.')
-      }
-    } else {
-      this.vm.error(
-        token,
-        "I don't know what's going on but this is where it is."
-      )
-    }
-    return token
   }
 
   match(...types: string[]): boolean {

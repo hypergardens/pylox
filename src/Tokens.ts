@@ -66,10 +66,6 @@ export class Token {
     this.name = name
   }
 
-  accept(visitor) {
-    visitor[`visit${this.type}token`](this)
-  }
-
   toString() {
     // VULN: confusion between literal and lexeme
     return `${this.literal ? this.literal : this.lexeme}${
