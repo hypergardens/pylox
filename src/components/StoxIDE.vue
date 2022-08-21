@@ -27,10 +27,9 @@ export default {
   },
   mounted: function () {
     this.code = `count:
-1 2 3 a
+1 2 pi: 3.14 pi;
 count;
-a: 4 a;
-0 count 5`
+0 "count" exec 4 5`
     this.runCode()
     // this.$emit('input')
   },

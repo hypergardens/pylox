@@ -7,12 +7,11 @@ class Interpreter {
   tokens: Token[]
   stack: Token[]
   ignoring: {}
-  ptr: number[]
+  ptr: number
   execOutput: (string | StackOperation)[]
   step: number
   maxSteps: number
   programs: string[]
-  obsPrograms: {}
   maxDepth: number
   sourceTokens: Token[]
 
@@ -24,13 +23,12 @@ class Interpreter {
     this.sourceTokens = []
     this.stack = []
     this.ignoring = {}
-    this.ptr = []
+    this.ptr = 0
     this.execOutput = []
     this.step = 0
     this.maxSteps = 2000
     this.maxDepth = 10
-    this.programs = []
-    this.obsPrograms = {}
+    this.programs = ['main']
   }
   loadSourceTokens(tokens: Token[]): void {
     // this.tokens.push(...tokens)
@@ -41,16 +39,11 @@ class Interpreter {
   }
   interpret() {
     let executed = false
-    this.execOutput.push(`╔════════╗`)
-    this.execOutput.push(`${this.programs}`)
     try {
-      this.ptr.push(0)
       while (!this.vm.hadError && this.getPtr() < this.tokens.length) {
-        let executedNow = this.interpretToken()
-        executed = executed || executedNow
+        this.interpretToken()
       }
       // exit to previous scope
-      this.ptr.pop()
     } catch (error) {
       // look for VM errors first
       if (error.token) {
@@ -64,35 +57,24 @@ class Interpreter {
     return executed
   }
 
-  interpretToken(): boolean {
+  interpretToken() {
     let token = this.peek()
-    // console.log(`execToken '${token.lexeme}'#${this.ptr}`);
-    if (
-      ['WHITESPACE', 'NEWLINE', 'LABEL', 'COMMENT'].indexOf(token.type) !== -1
-    ) {
-      // ignore whitespace and labels
-      return false
+    // console.log(`execToken '${token.lexeme}'#${this.ptr}`)
+    if (this.step > this.maxSteps) {
+      this.vm.error(token, 'Too many steps.')
+      throw `INFINITE LOOP`
     } else {
-      // main program or specific program token
-      // console.log(`Accepting token @${this.ptr}{${token.lexeme} ${token.type}}`);
-      if (this.step > this.maxSteps) {
-        this.vm.error(token, 'Too many steps.')
-        throw `INFINITE LOOP`
-      } else {
-        ///////////////////////////////
-        // run token custom function //
-        ///////////////////////////////
-        this[`visit${token.type}token`](token)
-        this.step += 1
-        this.advancePtr()
-        return true
-      }
+      ///////////////////////////////
+      // run token custom function //
+      ///////////////////////////////
+      this[`visit${token.type}token`](token)
+      this.step += 1
+      this.advancePtr()
     }
   }
 
   execMacro(token: Token) {
     // TODO: executed refinements for empty programs
-
     // create new stack operation
     let stackOp = new StackOperation(this, {
       added: [],
@@ -101,8 +83,6 @@ class Interpreter {
     this.execOutput.push(stackOp)
     // inline macro tokens
     let macroTokens = this.getMacroTokens(token)
-    let programs = [...token.programs, token.lexeme]
-    macroTokens.forEach((t) => t.setPrograms(programs))
     this.tokens.splice(this.getPtr() + 1, 0, ...macroTokens)
   }
 
@@ -170,7 +150,6 @@ class Interpreter {
       let operation: StackOperation = StandardLibrary[word](this, token)
       this.execOutput.push(operation)
     } else {
-      console.log(`exec macro ${token.lexeme}`)
       this.execMacro(token)
     }
   }
@@ -291,28 +270,26 @@ class Interpreter {
   checkInt(token, term): boolean {
     if (!Number.isInteger(term)) {
       throw { token, message: `${term} is not an integer.` }
-      return false
-    }
-    return true
-  }
-  checkString(token, term): boolean {
-    if (!(typeof term === 'string' || term instanceof String)) {
-      throw { token, message: `${term} is not a string.` }
-      return false
     }
     return true
   }
 
-  getPtr() {
-    return this.ptr[this.ptr.length - 1]
+  checkString(token, term): boolean {
+    if (!(typeof term === 'string' || term instanceof String)) {
+      throw { token, message: `${term} is not a string.` }
+    }
+    return true
   }
 
   peek() {
     return this.tokens[this.getPtr()]
   }
 
+  getPtr() {
+    return this.ptr
+  }
   advancePtr() {
-    this.ptr[this.ptr.length - 1]++
+    this.ptr++
   }
 }
 

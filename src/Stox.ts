@@ -29,16 +29,17 @@ class Stox {
     }
   }
 
-  stringToTokens(source: string | Token) {
+  stringToTokens(source: string | Token, addEof = true) {
     let lexer = new Lexer(this)
     let tokens: Token[] = []
     if (typeof source === 'string') {
-      tokens = lexer.scanTokens(source)
+      // used by vm in source
+      tokens = lexer.scanTokens(source, addEof)
     } else if (source instanceof Token) {
+      // used by exec in stdlib
       lexer.xOff = source.xOff + 1
       lexer.yOff = source.yOff
-      tokens = lexer.scanTokens(source.lexeme)
-      tokens.forEach((t) => t.setPrograms(source.programs))
+      tokens = lexer.scanTokens(source.lexeme, addEof)
     }
     return tokens
   }

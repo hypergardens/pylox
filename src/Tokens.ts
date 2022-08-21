@@ -1,5 +1,3 @@
-import { stringifyStyle } from '@vue/shared'
-
 export const TokenTypes = [
   `WORD`,
   `LABEL`,
@@ -20,7 +18,6 @@ export class Token {
   yOff: number
   lexeme: string
   literal: number | string | null
-  programs: string[]
   name: string
   constructor(
     type: string,
@@ -52,11 +49,6 @@ export class Token {
     if (yOff === undefined) throw `undefined pos ${lexeme}`
     this.xOff = xOff
     this.yOff = yOff
-    this.programs = []
-  }
-
-  setPrograms(programs) {
-    this.programs = [...programs]
   }
 
   setName(name: string) {

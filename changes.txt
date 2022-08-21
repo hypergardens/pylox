@@ -10,9 +10,6 @@ execToken
       macro:
         inline getTokens(macro)
 
-Parser
-  stash into bin
-
 StandardLib
   ? handle exec in Interpreter?
   ? should 

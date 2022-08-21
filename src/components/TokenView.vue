@@ -10,6 +10,9 @@ export default {
     coordForm() {
       return `${this.token.lexeme}@${this.token.xOff},${this.token.yOff}`
     },
+    logToConsole() {
+      console.log(this.coordForm())
+    },
   },
   computed: {
     newlineToken() {
@@ -28,8 +31,8 @@ export default {
       return this.token.type === 'NUMBER'
     },
     progLength() {
-      // return '5px'
-      return 2 * this.token.programs.length + 1 + 'px'
+      return '2px'
+      // return 2 * this.token.programs.length + 1 + 'px'
     },
   },
 }

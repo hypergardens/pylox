@@ -176,14 +176,11 @@ export const StandardLibrary: LibraryType = {
     interpreter.checkStackSize(token, 2)
     let termA = interpreter.pop(token)
     let termB = interpreter.pop(token)
-    let newToken: Token
     if (termA.type === 'STRING' || termB.type === 'STRING') {
       let newToken = new Token(
         'STRING',
-        // @ts-ignore
-        `${termA.literal + termB.literal}`,
-        // @ts-ignore
-        termA.literal + termB.literal,
+        `${<string>termA.literal + <string>termB.literal}`,
+        <string>termA.literal + <string>termB.literal,
         token.xOff,
         token.yOff
       )
@@ -195,10 +192,8 @@ export const StandardLibrary: LibraryType = {
     } else if (termA.type === 'NUMBER' && termB.type === 'NUMBER') {
       let newToken = new Token(
         'NUMBER',
-        // @ts-ignore
-        `${termA.literal + termB.literal}`,
-        // @ts-ignore
-        termA.literal + termB.literal,
+        `${<number>termA.literal + <number>termB.literal}`,
+        <number>termA.literal + <number>termB.literal,
         token.xOff,
         token.yOff
       )
@@ -308,26 +303,44 @@ export const StandardLibrary: LibraryType = {
     // print [ token
     interpreter.checkStackSize(token, 1)
     let execToken = interpreter.pop(token)
-    if (execToken.type !== 'STRING')
+    if (execToken.type !== 'STRING') {
       interpreter.vm.error(
         execToken,
         `Invalid token type for exec: ${execToken.type}`
       )
-    let word = <string>execToken.literal
-    // TODO: proper exec and merging with Visit Word
-    let newToken = new Token(
-      'STRING',
-      word,
-      word,
+    } else if (
+      execToken.lexeme[0] !== '"' ||
+      execToken.lexeme[execToken.lexeme.length - 1] !== '"'
+    ) {
+      interpreter.vm.error(token, `No quotes around string somehow?`)
+    }
+    let code = execToken.lexeme.slice(1, execToken.lexeme.length - 1)
+    let clonedToken = new Token(
+      execToken.type,
+      code,
+      execToken.literal,
       execToken.xOff,
       execToken.yOff
     )
-    interpreter.visitWORDtoken(newToken)
+    let tokens = interpreter.vm.stringToTokens(clonedToken, false)
+
+    interpreter.tokens.splice(interpreter.getPtr() + 1, 0, ...tokens)
     let stackOp = new StackOperation(interpreter, {
-      added: [],
+      added: [...tokens],
       removed: [execToken],
     })
     return stackOp
+
+    // let word = <string>execToken.literal
+    // // TODO: proper exec and merging with Visit Word
+    // let newToken = new Token(
+    //   'STRING',
+    //   word,
+    //   word,
+    //   execToken.xOff,
+    //   execToken.yOff
+    // )
+    // interpreter.visitWORDtoken(newToken)
   },
 
   print: (interpreter: Interpreter, token: Token) => {
@@ -376,6 +389,7 @@ function makeBinaryOperation(
       interpreter.checkBool(token, tokenB.literal)
       termB = termB === 0 ? 0 : 1
     }
+    // TODO: factor out eval
     let evalString = `${termA} ${symbol} ${termB}`
     let result = eval(evalString)
     if (castResultToBool) result = result === 0 || result === false ? 0 : 1

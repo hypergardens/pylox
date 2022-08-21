@@ -19,13 +19,14 @@ class Lexer {
     this.vm = vm
   }
 
-  scanTokens(source: string) {
+  scanTokens(source: string, addEof = true) {
     this.source = source
     while (!this.isAtEnd()) {
       this.start = this.current
       this.scanToken()
     }
-    this.tokens.push(new Token('EOF', '', null, this.xOff, this.yOff))
+    if (addEof)
+      this.tokens.push(new Token('EOF', '', null, this.xOff, this.yOff))
     return this.tokens
   }
 
@@ -59,12 +60,12 @@ class Lexer {
       this.whitespace()
     } else {
       // this.word();
-      // TODO: clean this up
       this.vm.error(this.makeToken('BAD'), `Unexpected character ${char}.`)
     }
   }
 
   wordOrLabel() {
+    // TODO: handle text being unused and map
     while (this.isAlphaNumeric(this.peek()) && !this.isAtEnd()) this.advance()
     let type, text
     if (this.peek(-1) === ':') {
