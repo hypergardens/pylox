@@ -299,35 +299,39 @@ export const StandardLibrary: LibraryType = {
   // BASICS
   /////////
 
-  exec: (interpreter: Interpreter, token: Token) => {
+  eval: (interpreter: Interpreter, token: Token) => {
     // print [ token
     interpreter.checkStackSize(token, 1)
-    let execToken = interpreter.pop(token)
-    if (execToken.type !== 'STRING') {
+    let evalToken = interpreter.pop(token)
+    if (evalToken.type !== 'STRING') {
       interpreter.vm.error(
-        execToken,
-        `Invalid token type for exec: ${execToken.type}`
+        evalToken,
+        `Invalid token type for exec: ${evalToken.type}`
       )
     } else if (
-      execToken.lexeme[0] !== '"' ||
-      execToken.lexeme[execToken.lexeme.length - 1] !== '"'
+      evalToken.lexeme[0] !== '"' ||
+      evalToken.lexeme[evalToken.lexeme.length - 1] !== '"'
     ) {
       interpreter.vm.error(token, `No quotes around string somehow?`)
     }
-    let code = execToken.lexeme.slice(1, execToken.lexeme.length - 1)
+    // TODO: hacky replacement
+    let code = evalToken.lexeme
+      .slice(1, evalToken.lexeme.length - 1)
+      .replace(/\\\\/g, '\\')
+      .replace(/\\"/g, '"')
     let clonedToken = new Token(
-      execToken.type,
+      evalToken.type,
       code,
-      execToken.literal,
-      execToken.xOff,
-      execToken.yOff
+      evalToken.literal,
+      evalToken.xOff,
+      evalToken.yOff
     )
     let tokens = interpreter.vm.stringToTokens(clonedToken, false)
 
     interpreter.tokens.splice(interpreter.getPtr() + 1, 0, ...tokens)
     let stackOp = new StackOperation(interpreter, {
       added: [...tokens],
-      removed: [execToken],
+      removed: [evalToken],
     })
     return stackOp
 

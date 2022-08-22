@@ -1,6 +1,6 @@
 import { Token } from './Tokens'
 import Stox from './Stox'
-class Lexer {
+class FSMLexer {
   source: string
   start: number
   current: number
@@ -31,9 +31,13 @@ class Lexer {
   }
 
   scanToken() {
-    let char = this.advance()
-    if (char === '\\') {
-    } else if (char === `-`) {
+    let char = this.advance(1)
+    console.log(`char:[${char}], peek:[${this.peek()}]`)
+
+    // if (char === '\\') {
+    //   console.log('escaped')
+    // } else
+    if (char === `-`) {
       // -
       if (this.isDigit(this.peek())) {
         // -123
@@ -42,9 +46,9 @@ class Lexer {
         // - :abc
         this.wordOrLabel()
       }
-    } else if (char === `/` && this.match(`/`)) {
+    } else if (char === '/' && this.peek() === '/') {
       this.comment()
-    } else if (char === `"`) {
+    } else if (char === `"` && this.peek(-1) !== '\\') {
       this.string()
     } else if (char === `~`) {
       this.addToken('TILDE')
@@ -67,7 +71,7 @@ class Lexer {
 
   wordOrLabel() {
     // TODO: handle text being unused and map
-    while (this.isAlphaNumeric(this.peek()) && !this.isAtEnd()) this.advance()
+    this.consumeAlphaNumeric()
     let type, text
     if (this.peek(-1) === ':') {
       // start label abc:
@@ -92,16 +96,24 @@ class Lexer {
     }
   }
 
+  consumeDigits() {
+    while (this.isDigit(this.peek()) && !this.isAtEnd()) this.advance()
+  }
+
+  consumeAlphaNumeric() {
+    while (this.isAlphaNumeric(this.peek()) && !this.isAtEnd()) this.advance()
+  }
+
   number() {
     // consume digits
-    while (this.isDigit(this.peek())) this.advance()
+    this.consumeDigits()
 
+    // consume dot and digits: ".123"
     if (this.peek() == '.' && this.isDigit(this.peek(1))) {
-      // consume "."
       this.advance()
 
       // consume fractional part
-      while (this.isDigit(this.peek())) this.advance()
+      this.consumeDigits()
     }
     this.addToken('NUMBER', Number(this.source.slice(this.start, this.current)))
   }
@@ -116,7 +128,14 @@ class Lexer {
   string() {
     // TODO: unescape \" like characters
     // consume characters
-    while (this.peek() != `"` && !this.isAtEnd()) {
+    // .*"
+    while (
+      (this.peek() !== `"` ||
+        (this.peek() === `"` && this.peek(-1) === `\\`)) &&
+      !this.isAtEnd()
+    ) {
+      console.log(`in string() ${this.peek()}`)
+
       if (this.peek() == '\n') {
         this.backToLeft()
       }
@@ -126,9 +145,14 @@ class Lexer {
     if (this.isAtEnd()) {
       this.vm.error(this.makeToken('STRING'), 'Unterminated string.')
     }
+
     // the closing "
     this.advance()
-    let value = this.source.slice(this.start + 1, this.current - 1)
+    let value = this.source
+      .slice(this.start + 1, this.current - 1)
+      .replace(/\\\\/g, '\\')
+      .replace(/\\"/g, '"')
+    console.log(`string with value ${value}`)
     this.addToken('STRING', value)
   }
 
@@ -143,6 +167,8 @@ class Lexer {
   }
 
   match(expected: string) {
+    console.log(`Matching ${expected}`)
+
     if (this.current + expected.length >= this.source.length) return false
     let matches =
       this.source.slice(this.current, this.current + expected.length) !==
@@ -150,12 +176,13 @@ class Lexer {
     if (!matches) {
       return false
     } else {
-      this.advance()
+      this.advance(expected.length)
       return true
     }
   }
 
   peek(n: number = 0) {
+    if (this.current + n < 0) throw 'Looking backwards below 0'
     if (this.current + n >= this.source.length) return '\0'
     return this.source[this.current + n]
   }
@@ -180,10 +207,12 @@ class Lexer {
     type: string,
     literal: number | string | null | undefined = undefined
   ) {
-    this.tokens.push(this.makeToken(type, literal))
+    let token = this.makeToken(type, literal)
+    this.tokens.push(token)
   }
 
   makeToken(type: string, literal: number | string | null = null) {
+    // TODO: clean up the hacky escaped strings
     let text = this.source.slice(this.start, this.current)
     let token = new Token(type, text, literal, this.xOff, this.yOff)
     this.xOff += text.length
@@ -207,4 +236,4 @@ class Lexer {
   }
 }
 
-export default Lexer
+export default FSMLexer

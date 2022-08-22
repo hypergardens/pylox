@@ -6,13 +6,6 @@ mult:
   1@ % 0 ==
 mult;
 
-count:
-  dup fbMain
-  1 + dup
-  15 >=
-  "noop" "count" cex
-count;
-
 mult3or5:
   dup 3 mult 
   1 @
@@ -25,15 +18,19 @@ fbMain:
   mult3or5 "print" "doFizzBuzz" cex
 fbMain;
 
+count:
+  dup fbMain
+  1 + dup
+  15 >=
+  "noop" "count" cex
+count;
+
 doFizzBuzz:
   dup dup "" 1@
-  5 mult "noop" "addBuzz" cex
+  5 mult "noop" "\"buzz\" +" cex
   2@
-  3 mult "noop" "addFizz" cex
+  3 mult "noop" "\"fizz\" +" cex
   print
 doFizzBuzz;
-
-addFizz: "fizz" + addFizz;
-addBuzz: "buzz" + addBuzz;
 
 0 count

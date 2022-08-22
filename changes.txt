@@ -1,15 +1,4 @@
-execToken
-  just takes 1 token
-    if literal: add to stack
-      StackOp(pushElem)
-    if word:
-      StandardLib word?
-        StackOp(vm)
-      if exec:
-        stringToTokens(lastToken), inline them
-      macro:
-        inline getTokens(macro)
-
-StandardLib
-  ? handle exec in Interpreter?
-  ? should 
+unescape \s function
+lump log example
+code load
+code colour

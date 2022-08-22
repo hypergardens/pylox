@@ -26,10 +26,7 @@ export default {
     },
   },
   mounted: function () {
-    this.code = `count:
-1 2 pi: 3.14 pi;
-count;
-0 "count" exec 4 5`
+    this.code = `"\\"a\\"" eval`
     this.runCode()
     // this.$emit('input')
   },
@@ -50,12 +47,12 @@ count:
 dup print 1 + dup
 10 >=
 "noop" "count"
-2 @ ? exec
+2 @ ? eval
 count;
 
 1 count`
 let cexAmple = `cex:
-2 @ ? exec
+2 @ ? eval
 cex;
 a: 5 4 a;
 
