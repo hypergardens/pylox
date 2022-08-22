@@ -32,7 +32,8 @@ class Lexer {
 
   scanToken() {
     let char = this.advance()
-    if (char === `-`) {
+    if (char === '\\') {
+    } else if (char === `-`) {
       // -
       if (this.isDigit(this.peek())) {
         // -123
@@ -143,13 +144,15 @@ class Lexer {
 
   match(expected: string) {
     if (this.current + expected.length >= this.source.length) return false
-    if (
-      this.source.slice(this.current, this.current + expected.length) !=
+    let matches =
+      this.source.slice(this.current, this.current + expected.length) !==
       expected
-    )
+    if (!matches) {
       return false
-    this.advance()
-    return true
+    } else {
+      this.advance()
+      return true
+    }
   }
 
   peek(n: number = 0) {
