@@ -8,7 +8,7 @@ class Interpreter {
   stack: Token[]
   ignoring: {}
   ptr: number
-  execOutput: (string | StackOperation)[]
+  operations: (string | StackOperation)[]
   step: number
   maxSteps: number
   programs: string[]
@@ -24,7 +24,7 @@ class Interpreter {
     this.stack = []
     this.ignoring = {}
     this.ptr = 0
-    this.execOutput = []
+    this.operations = []
     this.step = 0
     this.maxSteps = 2000
     this.maxDepth = 10
@@ -39,9 +39,11 @@ class Interpreter {
   }
   interpret() {
     let executed = false
+    this.operations.push(`╔════════╗`)
     try {
       while (!this.vm.hadError && this.getPtr() < this.tokens.length) {
-        this.interpretToken()
+        this.operations.push(this.interpretToken())
+        console.log(this.operations)
       }
       // exit to previous scope
     } catch (error) {
@@ -52,12 +54,11 @@ class Interpreter {
         throw error
       }
     }
-
-    this.execOutput.push(`╚════════╝`)
+    this.operations.push(`╚════════╝`)
     return executed
   }
 
-  interpretToken() {
+  interpretToken(): StackOperation {
     let token = this.peek()
     // console.log(`execToken '${token.lexeme}'#${this.ptr}`)
     if (this.step > this.maxSteps) {
@@ -67,23 +68,32 @@ class Interpreter {
       ///////////////////////////////
       // run token custom function //
       ///////////////////////////////
-      this[`visit${token.type}token`](token)
+      let stackOp: StackOperation = this[`visit${token.type}token`](token)
       this.step += 1
       this.advancePtr()
+      return stackOp
     }
   }
 
-  execMacro(token: Token) {
+  expandMacro(token: Token) {
     // TODO: executed refinements for empty programs
     // create new stack operation
+
     let stackOp = new StackOperation(this, {
+      token,
       added: [],
-      removed: [token],
+      removed: [],
     })
-    this.execOutput.push(stackOp)
+    this.operations.push(stackOp)
+    // TODO: SAMEASMACRO same as executing a string's tokens
     // inline macro tokens
     let macroTokens = this.getMacroTokens(token)
+    macroTokens.forEach((t) => {
+      t.setParent(token.uid)
+      t.setDepth(token.depth + 1)
+    })
     this.tokens.splice(this.getPtr() + 1, 0, ...macroTokens)
+    return stackOp
   }
 
   getMacroTokens(wordToken: Token | null): Token[] {
@@ -148,19 +158,19 @@ class Interpreter {
     if (StandardLibrary[word] !== undefined) {
       // standard library word
       let operation: StackOperation = StandardLibrary[word](this, token)
-      this.execOutput.push(operation)
+      this.operations.push(operation)
     } else {
-      this.execMacro(token)
+      this.expandMacro(token)
     }
   }
   visitSTRINGtoken(token: Token) {
-    this.addLiteralToken(token)
+    return this.addLiteralToken(token)
   }
   visitNUMBERtoken(token: Token) {
-    this.addLiteralToken(token)
+    return this.addLiteralToken(token)
   }
   visitNULLtoken(token: Token) {
-    this.addLiteralToken(token)
+    return this.addLiteralToken(token)
   }
   visitLABELtoken(token: Token) {}
   visitWHITESPACEtoken(token: Token) {}
@@ -178,7 +188,7 @@ class Interpreter {
     )
 
     let operation: StackOperation = StandardLibrary['push'](this, newToken)
-    this.execOutput.push(operation)
+    return operation
   }
 
   top(token: Token, depth: number): Token {

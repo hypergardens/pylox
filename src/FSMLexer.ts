@@ -32,7 +32,7 @@ class FSMLexer {
 
   scanToken() {
     let char = this.advance(1)
-    console.log(`char:[${char}], peek:[${this.peek()}]`)
+    // console.log(`char:[${char}], peek:[${this.peek()}]`)
 
     // if (char === '\\') {
     //   console.log('escaped')
@@ -134,8 +134,6 @@ class FSMLexer {
         (this.peek() === `"` && this.peek(-1) === `\\`)) &&
       !this.isAtEnd()
     ) {
-      console.log(`in string() ${this.peek()}`)
-
       if (this.peek() == '\n') {
         this.backToLeft()
       }
@@ -148,11 +146,11 @@ class FSMLexer {
 
     // the closing "
     this.advance()
+    // TODO: escaping and unescaping
     let value = this.source
       .slice(this.start + 1, this.current - 1)
       .replace(/\\\\/g, '\\')
       .replace(/\\"/g, '"')
-    console.log(`string with value ${value}`)
     this.addToken('STRING', value)
   }
 
@@ -167,8 +165,6 @@ class FSMLexer {
   }
 
   match(expected: string) {
-    console.log(`Matching ${expected}`)
-
     if (this.current + expected.length >= this.source.length) return false
     let matches =
       this.source.slice(this.current, this.current + expected.length) !==

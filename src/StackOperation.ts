@@ -10,25 +10,24 @@ export class StackOperation {
 
   constructor(
     interpreter: Interpreter,
-    { added, removed }: { added: Token[]; removed: Token[] }
+    {
+      token,
+      added,
+      removed,
+    }: { token: Token; added: Token[]; removed: Token[] }
   ) {
     this.step = interpreter.step
     this.token = interpreter.peek()
     this.added = added
     this.removed = removed
     this.stack = interpreter.stack.slice()
-    // console.log(`stackOp`, this.token.lexeme)
   }
   toString() {
-    // let text = `${this.token.lexeme.padStart(8, ' ')} → [${this.stack
-    //   .slice()
-    //   .reverse()
-    //   .toString()
-    //   .padEnd(10, ' ')}`
-    let text = `${this.stack}] ← ${this.token.lexeme} at ${this.step}`
-    // let text = `${this.token.lexeme.padStart(8, ' ')} → [${this.stack}\nin ${
-    //   this.added
-    // }, out ${this.removed}`
+    let text =
+      `${this.stack}] `.padStart(20) +
+      `← ${this.token.lexeme} at ${this.step}    (+${this.added.length}, -${this.removed.length})`.padEnd(
+        40
+      )
     return text
   }
 }

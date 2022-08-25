@@ -31,8 +31,8 @@ export default {
       return this.token.type === 'NUMBER'
     },
     progLength() {
-      return '2px'
-      // return 2 * this.token.programs.length + 1 + 'px'
+      // return '2px'
+      return this.token.depth + 1 + 'px'
     },
   },
 }

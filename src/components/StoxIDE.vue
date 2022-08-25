@@ -26,7 +26,10 @@ export default {
     },
   },
   mounted: function () {
-    this.code = `"\\"a\\"" eval`
+    this.code = `mult:
+1 @ % 0 ==
+mult;
+12 4 mult`
     this.runCode()
     // this.$emit('input')
   },
@@ -70,11 +73,51 @@ let basic = `pi:
 3.14
 pi;
 pi 2 *`
+let fizzBuzz = `cex:
+  2 @ ? eval
+cex;
+
+mult:
+  1@ % 0 ==
+mult;
+
+mult3or5:
+  dup 3 mult
+  1 @
+  dup 5 mult
+  2 @
+  ||
+mult3or5;
+
+fbMain:
+  mult3or5 "print" "doFizzBuzz" cex
+fbMain;
+
+count:
+  dup fbMain
+  1 + dup
+  15 >=
+  "noop" "count" cex
+count;
+
+doFizzBuzz:
+  dup dup "" 1@
+  5 mult "noop" "\\"buzz\\" +" cex
+  2@
+  3 mult "noop" "\\"fizz\\" +" cex
+  print
+doFizzBuzz;
+
+0 count`
 </script>
 <template>
   <div class="wrapper">
     <div class="column deb code-text">
-      <pre class="debug-output" v-for="operation in stox.interpreter.execOutput"
+      <pre
+        class="debug-output"
+        v-for="operation in stox.interpreter.operations.filter(
+          (op) => op !== undefined
+        )"
         >{{ operation }}
       </pre>
     </div>

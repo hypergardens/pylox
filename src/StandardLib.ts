@@ -21,11 +21,15 @@ type LibraryType = {
 export const StandardLibrary: LibraryType = {
   push: (interpreter: Interpreter, token: Token) => {
     interpreter.place(token, 0, token)
-    return new StackOperation(interpreter, { added: [token], removed: [] })
+    return new StackOperation(interpreter, {
+      token,
+      added: [token],
+      removed: [],
+    })
   },
 
   noop: (interpreter: Interpreter, token: Token) => {
-    return new StackOperation(interpreter, { added: [], removed: [] })
+    return new StackOperation(interpreter, { token, added: [], removed: [] })
   },
 
   // STACK MANIPULATION
@@ -42,6 +46,7 @@ export const StandardLibrary: LibraryType = {
       let pluckedToken = interpreter.pluck(token, depth)
       interpreter.place(token, 0, pluckedToken)
       return new StackOperation(interpreter, {
+        token,
         added: [pluckedToken],
         removed: [pullToken, pluckedToken],
       })
@@ -60,6 +65,7 @@ export const StandardLibrary: LibraryType = {
         interpreter.place(token, 0, foundToken)
 
         return new StackOperation(interpreter, {
+          token,
           added: [foundToken],
           removed: [pullToken, foundToken],
         })
@@ -67,6 +73,7 @@ export const StandardLibrary: LibraryType = {
         interpreter.vm.error(token, `Named token not found: #${name}`)
 
         return new StackOperation(interpreter, {
+          token,
           added: [],
           removed: [],
         })
@@ -76,10 +83,7 @@ export const StandardLibrary: LibraryType = {
         token,
         `Argument to pull token should be string or number. Found: ${pullToken.type}`
       )
-      return new StackOperation(interpreter, {
-        added: [],
-        removed: [],
-      })
+      return new StackOperation(interpreter, { token, added: [], removed: [] })
     }
   },
 
@@ -99,6 +103,7 @@ export const StandardLibrary: LibraryType = {
     newToken.setName(<string>nameToken.literal)
     interpreter.place(token, 0, newToken)
     return new StackOperation(interpreter, {
+      token,
       added: [newToken],
       removed: [nameToken, namedToken],
     })
@@ -112,6 +117,7 @@ export const StandardLibrary: LibraryType = {
     interpreter.checkStackSize(token, depth)
     let pluckedToken = interpreter.pluck(token, depth)
     return new StackOperation(interpreter, {
+      token,
       added: [],
       removed: [depthToken, pluckedToken],
     })
@@ -132,6 +138,7 @@ export const StandardLibrary: LibraryType = {
     )
     interpreter.place(token, 0, newToken)
     return new StackOperation(interpreter, {
+      token,
       added: [newToken],
       removed: [],
     })
@@ -148,6 +155,7 @@ export const StandardLibrary: LibraryType = {
     )
     interpreter.place(token, 0, newToken)
     return new StackOperation(interpreter, {
+      token,
       added: [newToken],
       removed: [],
     })
@@ -164,6 +172,7 @@ export const StandardLibrary: LibraryType = {
     let placedToken = interpreter.pop(token)
     interpreter.place(token, depth, placedToken)
     return new StackOperation(interpreter, {
+      token,
       added: [placedToken],
       removed: [depthToken, placedToken],
     })
@@ -186,6 +195,7 @@ export const StandardLibrary: LibraryType = {
       )
       interpreter.place(token, 0, newToken)
       return new StackOperation(interpreter, {
+        token,
         added: [newToken],
         removed: [termA, termB],
       })
@@ -199,12 +209,13 @@ export const StandardLibrary: LibraryType = {
       )
       interpreter.place(token, 0, newToken)
       return new StackOperation(interpreter, {
+        token,
         added: [newToken],
         removed: [termA, termB],
       })
     } else {
       // interpreter.vm.error(token, 'Invalid types for addition.')
-      return new StackOperation(interpreter, { added: [], removed: [] })
+      return new StackOperation(interpreter, { token, added: [], removed: [] })
     }
   },
   '*': (interpreter: Interpreter, token: Token) => {
@@ -221,6 +232,7 @@ export const StandardLibrary: LibraryType = {
       ) {
         interpreter.vm.error(token, 'Repeat number must be positive integer')
         return new StackOperation(interpreter, {
+          token,
           added: [],
           removed: [],
         })
@@ -237,6 +249,7 @@ export const StandardLibrary: LibraryType = {
         )
         interpreter.place(token, 0, newToken)
         return new StackOperation(interpreter, {
+          token,
           added: [newToken],
           removed: [termA, termB],
         })
@@ -255,6 +268,7 @@ export const StandardLibrary: LibraryType = {
       )
       interpreter.place(token, 0, newToken)
       return new StackOperation(interpreter, {
+        token,
         added: [newToken],
         removed: [termA, termB],
       })
@@ -291,6 +305,7 @@ export const StandardLibrary: LibraryType = {
       token.yOff
     )
     return new StackOperation(interpreter, {
+      token,
       added: [newToken],
       removed: [negatedToken],
     })
@@ -328,12 +343,17 @@ export const StandardLibrary: LibraryType = {
     )
     let tokens = interpreter.vm.stringToTokens(clonedToken, false)
 
+    // TODO: SAMEASMACRO same as executing a string's tokens
+    tokens.forEach((t) => {
+      t.setParent(evalToken.uid)
+      t.setDepth(evalToken.depth + 1)
+    })
     interpreter.tokens.splice(interpreter.getPtr() + 1, 0, ...tokens)
-    let stackOp = new StackOperation(interpreter, {
+    return new StackOperation(interpreter, {
+      token,
       added: [...tokens],
       removed: [evalToken],
     })
-    return stackOp
 
     // let word = <string>execToken.literal
     // // TODO: proper exec and merging with Visit Word
@@ -353,6 +373,7 @@ export const StandardLibrary: LibraryType = {
     let printedToken = interpreter.pop(token)
     interpreter.print(printedToken.toString())
     return new StackOperation(interpreter, {
+      token,
       added: [],
       removed: [printedToken],
     })
@@ -367,6 +388,7 @@ export const StandardLibrary: LibraryType = {
     let placedToken = condToken.literal !== 0 ? ifTruthy : ifFalsy
     interpreter.stack.push(placedToken)
     return new StackOperation(interpreter, {
+      token,
       added: [placedToken],
       removed: [condToken, ifTruthy, ifFalsy],
     })
@@ -408,6 +430,7 @@ function makeBinaryOperation(
     )
     interpreter.place(token, 0, newToken)
     return new StackOperation(interpreter, {
+      token,
       added: [newToken],
       removed: [tokenA, tokenB],
     })
@@ -434,6 +457,7 @@ function makeEqualityOperation(symbol: string, reverse = false) {
     )
     interpreter.place(token, 0, newToken)
     return new StackOperation(interpreter, {
+      token,
       added: [newToken],
       removed: [tokenA, tokenB],
     })

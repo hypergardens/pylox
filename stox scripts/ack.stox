@@ -1,0 +1,41 @@
+ack:
+dup 0 ==
+"noop" "ack0" 2 @ ? eval
+1 @
+
+dup 0 ==
+"noop" "ack01" 2 @ ? eval
+1 @
+
+dup gt0
+2 @
+dup gt0
+2 @
+&&
+"noop" "ack11" 2 @ ?
+1@ 2@ 2@ eval
+ack;
+
+gt0: 0 < gt0;
+
+ack0:
+0 del 1 +
+ack0;
+
+ack01:
+0 del 
+1 "n" #
+ack
+ack01;
+
+dec: 1 1@ - dec;
+
+ack11:
+dup dec "m-1" #
+2@ dec "n-1" #
+2@ ack
+ack11;
+
+1 "n" #
+1 "m" #
+ack

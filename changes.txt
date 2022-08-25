@@ -1,4 +1,0 @@
-unescape \s function
-lump log example
-code load
-code colour

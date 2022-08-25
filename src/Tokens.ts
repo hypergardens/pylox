@@ -19,6 +19,8 @@ export class Token {
   lexeme: string
   literal: number | string | null
   name: string
+  parent?: number
+  depth: number
   constructor(
     type: string,
     lexeme: string,
@@ -35,11 +37,13 @@ export class Token {
 
     this.type = type
     this.name = ''
+    this.depth = 0
     // check known type of token
     if (TokenTypes.indexOf(this.type) === -1) {
       throw `Unrecognised type: ${type}`
     }
 
+    // TODO: same as escaping or unescaping?
     // actual string for the token
     this.lexeme = lexeme
     // only for NUMBER and STRING
@@ -53,6 +57,13 @@ export class Token {
 
   setName(name: string) {
     this.name = name
+  }
+
+  setParent(parent: number) {
+    this.parent = parent
+  }
+  setDepth(depth: number) {
+    this.depth = depth
   }
 
   toString() {

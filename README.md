@@ -7,3 +7,14 @@
 - https://codemirror.net/
 
 program = token* EOF
+
+## TODO
+
+unescape \s function
+lump log example
+code load
+code colour
+
+add depth checking to stackOperations
+make stack ops collapse if they encounter a comment
+  all are collapsed that have parents on this depth
