@@ -19,7 +19,7 @@ export class Token {
   lexeme: string
   literal: number | string | null
   name: string
-  parent?: number
+  parent?: Token
   depth: number
   constructor(
     type: string,
@@ -59,11 +59,18 @@ export class Token {
     this.name = name
   }
 
-  setParent(parent: number) {
+  setParent(parent: Token) {
     this.parent = parent
   }
-  setDepth(depth: number) {
-    this.depth = depth
+
+  getDepth() {
+    let depth = 0
+    let parent = this.parent
+    while (parent) {
+      parent = parent.parent
+      depth++
+    }
+    return depth
   }
 
   toString() {

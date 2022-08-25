@@ -32,7 +32,7 @@ export default {
     },
     progLength() {
       // return '2px'
-      return this.token.depth + 1 + 'px'
+      return this.token.getDepth() + 1 + 'px'
     },
   },
 }

@@ -27,7 +27,7 @@ export default {
   },
   mounted: function () {
     this.code = `mult:
-1 @ % 0 ==
+1 @ % 0 == // is a multiple
 mult;
 12 4 mult`
     this.runCode()

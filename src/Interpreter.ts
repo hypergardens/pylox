@@ -89,8 +89,7 @@ class Interpreter {
     // inline macro tokens
     let macroTokens = this.getMacroTokens(token)
     macroTokens.forEach((t) => {
-      t.setParent(token.uid)
-      t.setDepth(token.depth + 1)
+      t.setParent(token)
     })
     this.tokens.splice(this.getPtr() + 1, 0, ...macroTokens)
     return stackOp
@@ -128,8 +127,7 @@ class Interpreter {
         }
       } else {
         // collect tokens and inline them
-        let isWhitespace =
-          ['WHITESPACE', 'NEWLINE', 'COMMENT'].indexOf(token.type) !== -1
+        let isWhitespace = ['WHITESPACE'].indexOf(token.type) !== -1
         let inMainNoMacros =
           !wordToken && !Object.keys(inMacros).some((mac) => inMacros[mac])
         let inCorrectMacro = inMacros[word] || inMainNoMacros

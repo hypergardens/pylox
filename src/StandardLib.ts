@@ -345,8 +345,7 @@ export const StandardLibrary: LibraryType = {
 
     // TODO: SAMEASMACRO same as executing a string's tokens
     tokens.forEach((t) => {
-      t.setParent(evalToken.uid)
-      t.setDepth(evalToken.depth + 1)
+      t.setParent(evalToken)
     })
     interpreter.tokens.splice(interpreter.getPtr() + 1, 0, ...tokens)
     return new StackOperation(interpreter, {
