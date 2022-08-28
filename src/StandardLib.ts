@@ -180,6 +180,7 @@ export const StandardLibrary: LibraryType = {
 
   // BASIC MATH
   /////////////
+  // TODO: integrate + and * into makeBinaryOperation
 
   '+': (interpreter: Interpreter, token: Token) => {
     interpreter.checkStackSize(token, 2)
@@ -214,7 +215,7 @@ export const StandardLibrary: LibraryType = {
         removed: [termA, termB],
       })
     } else {
-      // interpreter.vm.error(token, 'Invalid types for addition.')
+      interpreter.vm.error(token, 'Invalid types for addition.')
       return new StackOperation(interpreter, { token, added: [], removed: [] })
     }
   },
@@ -281,18 +282,18 @@ export const StandardLibrary: LibraryType = {
 
   // COMPARISONS
   //////////////
-  '>': makeBinaryOperation('>', true),
-  '<': makeBinaryOperation('<', true),
-  '>=': makeBinaryOperation('>=', true),
-  '<=': makeBinaryOperation('<=', true),
+  '>': makeBinaryOperation('>', false),
+  '<': makeBinaryOperation('<', false),
+  '>=': makeBinaryOperation('>=', false),
+  '<=': makeBinaryOperation('<=', false),
 
-  '==': makeEqualityOperation('==', false),
-  '!=': makeEqualityOperation('!=', true),
+  '==': makeBinaryOperation('==', false),
+  '!=': makeBinaryOperation('!=', false),
 
   // LOGICAL
   //////////
-  '||': makeBinaryOperation('||', true, true),
-  '&&': makeBinaryOperation('&&', true, true),
+  '||': makeBinaryOperation('||', true),
+  '&&': makeBinaryOperation('&&', true),
   '!': (interpreter: Interpreter, token: Token) => {
     interpreter.checkStackSize(token, 1)
     let negatedToken = interpreter.pop(token)
@@ -314,44 +315,44 @@ export const StandardLibrary: LibraryType = {
   // BASICS
   /////////
 
-  eval: (interpreter: Interpreter, token: Token) => {
+  exec: (interpreter: Interpreter, token: Token) => {
     // print [ token
     interpreter.checkStackSize(token, 1)
-    let evalToken = interpreter.pop(token)
-    if (evalToken.type !== 'STRING') {
+    let execToken = interpreter.pop(token)
+    if (execToken.type !== 'STRING') {
       interpreter.vm.error(
-        evalToken,
-        `Invalid token type for exec: ${evalToken.type}`
+        execToken,
+        `Invalid token type for exec: ${execToken.type}`
       )
     } else if (
-      evalToken.lexeme[0] !== '"' ||
-      evalToken.lexeme[evalToken.lexeme.length - 1] !== '"'
+      execToken.lexeme[0] !== '"' ||
+      execToken.lexeme[execToken.lexeme.length - 1] !== '"'
     ) {
       interpreter.vm.error(token, `No quotes around string somehow?`)
     }
     // TODO: hacky replacement
-    let code = evalToken.lexeme
-      .slice(1, evalToken.lexeme.length - 1)
+    let code = execToken.lexeme
+      .slice(1, execToken.lexeme.length - 1)
       .replace(/\\\\/g, '\\')
       .replace(/\\"/g, '"')
     let clonedToken = new Token(
-      evalToken.type,
+      execToken.type,
       code,
-      evalToken.literal,
-      evalToken.xOff,
-      evalToken.yOff
+      execToken.literal,
+      execToken.xOff,
+      execToken.yOff
     )
     let tokens = interpreter.vm.stringToTokens(clonedToken, false)
 
     // TODO: SAMEASMACRO same as executing a string's tokens
     tokens.forEach((t) => {
-      t.setParent(evalToken)
+      t.setParent(execToken)
     })
     interpreter.tokens.splice(interpreter.getPtr() + 1, 0, ...tokens)
     return new StackOperation(interpreter, {
       token,
       added: [...tokens],
-      removed: [evalToken],
+      removed: [execToken],
     })
 
     // let word = <string>execToken.literal
@@ -394,12 +395,10 @@ export const StandardLibrary: LibraryType = {
   },
 }
 
-function makeBinaryOperation(
-  symbol: string,
-  castResultToBool = false,
-  castOperandsToBool = false
-) {
+function makeBinaryOperation(symbol: string, castOperandsToBool = false) {
   return (interpreter: Interpreter, token: Token) => {
+    // make sure it's two literals on the stack
+    // pop them into termA and termB
     interpreter.checkStackSize(token, 2)
     let tokenA = interpreter.pop(token)
     let termA = tokenA.literal
@@ -408,43 +407,69 @@ function makeBinaryOperation(
     let termB = tokenB.literal
     interpreter.checkNumber(token, tokenB.literal)
 
+    // cast to bool if necessary
+    // TODO: decide about non-bool operands and shortcircuiting
     if (castOperandsToBool) {
       interpreter.checkBool(token, tokenA.literal)
       termA = termA === 0 ? 0 : 1
       interpreter.checkBool(token, tokenB.literal)
       termB = termB === 0 ? 0 : 1
     }
-    // TODO: factor out eval
-    let evalString = `${termA} ${symbol} ${termB}`
-    let result = eval(evalString)
-    if (castResultToBool) result = result === 0 || result === false ? 0 : 1
-    let newToken = new Token(
-      'NUMBER',
-      // @ts-ignore
-      `${result}`,
-      // @ts-ignore
-      result,
-      token.xOff,
-      token.yOff
-    )
-    interpreter.place(token, 0, newToken)
-    return new StackOperation(interpreter, {
-      token,
-      added: [newToken],
-      removed: [tokenA, tokenB],
-    })
-  }
-}
-function makeEqualityOperation(symbol: string, reverse = false) {
-  return (interpreter: Interpreter, token: Token) => {
-    interpreter.checkStackSize(token, 2)
-    let tokenA = interpreter.pop(token)
-    let tokenB = interpreter.pop(token)
-    let result = 0
-    if (tokenA.type === tokenB.type && tokenA.literal === tokenB.literal) {
-      result = 1
+    // VULN: undefined result
+    let result
+    let numberA = <number>termA
+    let numberB = <number>termB
+    switch (symbol) {
+      // classic binary ops
+      // case '+':
+      //   break
+      case '-':
+        result = numberA - numberB
+        break
+      case '/':
+        result = numberA / numberB
+        break
+      case '%':
+        result = numberA % numberB
+        break
+
+      // TODO: test for logical with numbers
+      // castOperandsToBool is true
+      case '||':
+        result = numberA || numberB
+        break
+      case '&&':
+        result = numberA && numberB
+        break
+      // comparisons
+      case '>':
+        result = numberA > numberB ? 1 : 0
+        break
+      case '>=':
+        result = numberA >= numberB ? 1 : 0
+        break
+      case '<':
+        result = numberA < numberB ? 1 : 0
+        break
+      case '<=':
+        result = numberA <= numberB ? 1 : 0
+        break
+      case '==':
+        result =
+          tokenA.type === tokenB.type && tokenA.literal === tokenB.literal
+            ? 1
+            : 0
+        break
+      case '!=':
+        result =
+          tokenA.type === tokenB.type && tokenA.literal === tokenB.literal
+            ? 0
+            : 1
+        break
+      default:
+        interpreter.vm.error(token, `Invalid operation`)
     }
-    if (reverse) result = 1 - result
+
     let newToken = new Token(
       'NUMBER',
       // @ts-ignore

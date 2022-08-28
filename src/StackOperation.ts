@@ -14,12 +14,12 @@ export class StackOperation {
       token,
       added,
       removed,
-    }: { token: Token; added: Token[]; removed: Token[] }
+    }: { token: Token; added?: Token[]; removed?: Token[] }
   ) {
     this.step = interpreter.step
     this.token = interpreter.peek()
-    this.added = added
-    this.removed = removed
+    this.added = added ?? []
+    this.removed = removed ?? []
     this.stack = interpreter.stack.slice()
   }
   toString() {

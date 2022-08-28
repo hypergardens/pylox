@@ -1,10 +1,10 @@
 ack:
 dup 0 ==
-"noop" "ack0" 2 @ ? eval
+"noop" "ack0" 2 @ ? exec
 1 @
 
 dup 0 ==
-"noop" "ack01" 2 @ ? eval
+"noop" "ack01" 2 @ ? exec
 1 @
 
 dup gt0
@@ -13,7 +13,7 @@ dup gt0
 2 @
 &&
 "noop" "ack11" 2 @ ?
-1@ 2@ 2@ eval
+1@ 2@ 2@ exec
 ack;
 
 gt0: 0 < gt0;

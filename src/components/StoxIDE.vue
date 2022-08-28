@@ -26,10 +26,13 @@ export default {
     },
   },
   mounted: function () {
-    this.code = `mult:
-1 @ % 0 == // is a multiple
-mult;
-12 4 mult`
+    this.code = `"binary"
+2 2 +
+3 8 -
+2 12 /
+8 15 %
+"comparisons"
+0 12 >`
     this.runCode()
     // this.$emit('input')
   },
@@ -50,12 +53,12 @@ count:
 dup print 1 + dup
 10 >=
 "noop" "count"
-2 @ ? eval
+2 @ ? exec
 count;
 
 1 count`
 let cexAmple = `cex:
-2 @ ? eval
+2 @ ? exec
 cex;
 a: 5 4 a;
 
@@ -74,7 +77,7 @@ let basic = `pi:
 pi;
 pi 2 *`
 let fizzBuzz = `cex:
-  2 @ ? eval
+  2 @ ? exec
 cex;
 
 mult:

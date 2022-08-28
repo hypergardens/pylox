@@ -11,7 +11,12 @@ program = token* EOF
 ## TODO
 
 unescape \s function
-lump log example
+lump log
+  getInlinedOperations
+    if comment followed by newline
+    get all operations on this line
+    take depth into account and reset yOff and xOff
+ignore whitespace at end of line
 code load
 code colour
 
