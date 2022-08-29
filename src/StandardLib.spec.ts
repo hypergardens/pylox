@@ -1,7 +1,45 @@
 import Stox from './Stox'
+describe('Comparisons library', () => {
+  it('runs comparisons', () => {
+    for (let termA = 0; termA <= 2; termA++) {
+      for (let termB = 0; termB <= 2; termB++) {
+        console.log(termA, termB, 'test')
+        expect(Stox.quickRun(`${termB} ${termA} >`).debugAt(0).literal).toBe(
+          termA > termB ? 1 : 0
+        )
+        expect(Stox.quickRun(`${termB} ${termA} <`).debugAt(0).literal).toBe(
+          termA < termB ? 1 : 0
+        )
+        expect(Stox.quickRun(`${termB} ${termA} >=`).debugAt(0).literal).toBe(
+          termA >= termB ? 1 : 0
+        )
+        expect(Stox.quickRun(`${termB} ${termA} <=`).debugAt(0).literal).toBe(
+          termA <= termB ? 1 : 0
+        )
+        expect(Stox.quickRun(`${termB} ${termA} ==`).debugAt(0).literal).toBe(
+          termA === termB ? 1 : 0
+        )
+        expect(Stox.quickRun(`${termB} ${termA} !=`).debugAt(0).literal).toBe(
+          termA !== termB ? 1 : 0
+        )
+      }
+    }
+    // expect(Stox.quickRun(`10 11 >`).debugAt(0).literal).toBe(1)
+    // expect(Stox.quickRun(`10 11 <`).debugAt(0).literal).toBe(0)
+    // expect(Stox.quickRun(`11 11 >=`).debugAt(0).literal).toBe(1)
+    // expect(Stox.quickRun(`9 11 >=`).debugAt(0).literal).toBe(1)
+    // expect(Stox.quickRun(`10 11 <=`).debugAt(0).literal).toBe(0)
+    // expect(Stox.quickRun(`10 11 <`).debugAt(0).literal).toBe(1)
+  })
+})
+
 describe('Binary operations library', () => {
-  it('runs number addition', () => {
+  it('runs number operations', () => {
     expect(Stox.quickRun(`2 3 +`).debugAt(0).literal).toBe(5)
+    expect(Stox.quickRun(`6 10 -`).debugAt(0).literal).toBe(4)
+    expect(Stox.quickRun(`8 10 *`).debugAt(0).literal).toBe(80)
+    expect(Stox.quickRun(`3 12 /`).debugAt(0).literal).toBe(4)
+    expect(Stox.quickRun(`3 13 %`).debugAt(0).literal).toBe(1)
   })
 
   it('runs number and string addition', () => {
@@ -12,30 +50,9 @@ describe('Binary operations library', () => {
     expect(Stox.quickRun(`"pie" "apple" +`).debugAt(0).literal).toBe('applepie')
   })
 
-  it('runs number subtraction', () => {
-    expect(Stox.quickRun(`6 10 -`).debugAt(0).literal).toBe(4)
-  })
-
-  it('throws on string subtraction', () => {
-    expect(() => Stox.quickRun(`"cake" 10 -`)).toThrow()
-    expect(() => Stox.quickRun(`"cake" "cake" -`)).toThrow()
-    expect(() => Stox.quickRun(`"10 "cake" -`)).toThrow()
-  })
-  it('runs number multiplication', () => {
-    expect(Stox.quickRun(`8 10 *`).debugAt(0).literal).toBe(80)
-  })
-
   it('runs string multiplication', () => {
     expect(Stox.quickRun(`2 "walla" *`).debugAt(0).literal).toBe('wallawalla')
-    expect(Stox.quickRun(`"walla" 2 *`).debugAt(0).literal).toBe('wallawalla')
-  })
-
-  it('runs number division', () => {
-    expect(Stox.quickRun(`3 12 /`).debugAt(0).literal).toBe(4)
-  })
-
-  it('runs number modulo', () => {
-    expect(Stox.quickRun(`3 13 %`).debugAt(0).literal).toBe(1)
+    expect(Stox.quickRun(`"salla" 2 *`).debugAt(0).literal).toBe('sallasalla')
   })
 
   it('combines operations well', () => {
