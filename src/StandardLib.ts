@@ -333,7 +333,6 @@ function makeBinaryOperation(
         break
       case '*':
         if (bothAreNumbers) {
-          console.log(`${termA} * ${termB}`)
           result = <number>termA * <number>termB
         } else if (numberAndString) {
           interpreter.checkInt(token, termA)
