@@ -1,6 +1,4 @@
-import { vModelCheckbox } from 'vue'
 import Interpreter from './Interpreter'
-import Stox from './Stox'
 import { StackOperation } from './StackOperation'
 import { Token } from './Tokens'
 
