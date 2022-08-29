@@ -43,7 +43,6 @@ class Interpreter {
     try {
       while (!this.vm.hadError && this.getPtr() < this.tokens.length) {
         this.operations.push(this.interpretToken())
-        console.log(this.operations)
       }
       // exit to previous scope
     } catch (error) {
@@ -197,6 +196,12 @@ class Interpreter {
       this.checkStackSize(token, depth + 1)
       return this.stack[this.stack.length - depth - 1]
     }
+  }
+
+  debugAt(depth) {
+    let debugToken = new Token('STRING', 'DEBUG', null, 0, 0)
+    // this.checkStackSize(debugToken, depth)
+    return this.top(debugToken, depth)
   }
 
   pop(token: Token) {

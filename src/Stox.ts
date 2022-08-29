@@ -14,11 +14,18 @@ class Stox {
     Token.uid = 0
   }
 
+  static quickRun(source) {
+    let vm = new Stox()
+    vm.run(source)
+    return vm.interpreter
+  }
+
   report(line: number, where: string, message: string) {
     let errMsg = `[Line ${line}] Error ${where}: ${message}`
     console.error(errMsg)
     this.hadError = true
     this.consoleText.push(errMsg)
+    throw errMsg
   }
 
   error(token: Token, message: string) {
