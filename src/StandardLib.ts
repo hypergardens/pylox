@@ -182,118 +182,26 @@ export const StandardLibrary: LibraryType = {
   /////////////
   // TODO: integrate + and * into makeBinaryOperation
 
-  '+': (interpreter: Interpreter, token: Token) => {
-    interpreter.checkStackSize(token, 2)
-    let termA = interpreter.pop(token)
-    let termB = interpreter.pop(token)
-    if (termA.type === 'STRING' || termB.type === 'STRING') {
-      let newToken = new Token(
-        'STRING',
-        `${<string>termA.literal + <string>termB.literal}`,
-        <string>termA.literal + <string>termB.literal,
-        token.xOff,
-        token.yOff
-      )
-      interpreter.place(token, 0, newToken)
-      return new StackOperation(interpreter, {
-        token,
-        added: [newToken],
-        removed: [termA, termB],
-      })
-    } else if (termA.type === 'NUMBER' && termB.type === 'NUMBER') {
-      let newToken = new Token(
-        'NUMBER',
-        `${<number>termA.literal + <number>termB.literal}`,
-        <number>termA.literal + <number>termB.literal,
-        token.xOff,
-        token.yOff
-      )
-      interpreter.place(token, 0, newToken)
-      return new StackOperation(interpreter, {
-        token,
-        added: [newToken],
-        removed: [termA, termB],
-      })
-    } else {
-      interpreter.vm.error(token, 'Invalid types for addition.')
-      return new StackOperation(interpreter, { token, added: [], removed: [] })
-    }
-  },
-  '*': (interpreter: Interpreter, token: Token) => {
-    interpreter.checkStackSize(token, 2)
-    let termA = interpreter.pop(token)
-    let termB = interpreter.pop(token)
-    if (termA.type === 'STRING' && termB.type === 'NUMBER') {
-      // check positive integer
-      if (
-        !(
-          <number>termB.literal > 0 &&
-          interpreter.checkInt(token, termB.literal)
-        )
-      ) {
-        interpreter.vm.error(token, 'Repeat number must be positive integer')
-        return new StackOperation(interpreter, {
-          token,
-          added: [],
-          removed: [],
-        })
-      } else {
-        // repeat string
-        let newToken = new Token(
-          'STRING',
-          // @ts-ignore
-          `${termA.literal.repeat(termB.literal)}`,
-          // @ts-ignore
-          termA.literal.repeat(termB.literal),
-          termA.xOff,
-          termA.yOff
-        )
-        interpreter.place(token, 0, newToken)
-        return new StackOperation(interpreter, {
-          token,
-          added: [newToken],
-          removed: [termA, termB],
-        })
-      }
-    } else {
-      interpreter.checkNumber(token, termA.literal)
-      interpreter.checkNumber(token, termB.literal)
-      let newToken = new Token(
-        'NUMBER',
-        // @ts-ignore
-        `${termA.literal * termB.literal}`,
-        // @ts-ignore
-        termA.literal * termB.literal,
-        token.xOff,
-        token.yOff
-      )
-      interpreter.place(token, 0, newToken)
-      return new StackOperation(interpreter, {
-        token,
-        added: [newToken],
-        removed: [termA, termB],
-      })
-    }
-  },
-
-  '-': makeBinaryOperation('-'),
-  '/': makeBinaryOperation('/'),
-  '%': makeBinaryOperation('%'),
+  '+': makeBinaryOperation('+', {}),
+  '-': makeBinaryOperation('-', { checkBothAreNumbers: true }),
+  '*': makeBinaryOperation('*', {}),
+  '/': makeBinaryOperation('/', { checkBothAreNumbers: true }),
+  '%': makeBinaryOperation('%', { checkBothAreNumbers: true }),
 
   // COMPARISONS
   //////////////
-  '>': makeBinaryOperation('>', false),
-  '<': makeBinaryOperation('<', false),
-  '>=': makeBinaryOperation('>=', false),
-  '<=': makeBinaryOperation('<=', false),
+  '>': makeBinaryOperation('>', { checkBothAreNumbers: true }),
+  '<': makeBinaryOperation('<', { checkBothAreNumbers: true }),
+  '>=': makeBinaryOperation('>=', { checkBothAreNumbers: true }),
+  '<=': makeBinaryOperation('<=', { checkBothAreNumbers: true }),
 
-  '==': makeBinaryOperation('==', false),
-  '!=': makeBinaryOperation('!=', false),
+  '==': makeBinaryOperation('==', {}),
+  '!=': makeBinaryOperation('!=', {}),
 
   // LOGICAL
   //////////
-  '||': makeBinaryOperation('||', true),
-  '&&': makeBinaryOperation('&&', true),
+  '||': makeBinaryOperation('||', { castOperandsToBool: true }),
+  '&&': makeBinaryOperation('&&', { castOperandsToBool: true }),
   '!': (interpreter: Interpreter, token: Token) => {
     interpreter.checkStackSize(token, 1)
     let negatedToken = interpreter.pop(token)
@@ -395,17 +303,24 @@ export const StandardLibrary: LibraryType = {
   },
 }
 
-function makeBinaryOperation(symbol: string, castOperandsToBool = false) {
+function makeBinaryOperation(
+  symbol: string,
+  { castOperandsToBool = false, checkBothAreNumbers = false }
+) {
   return (interpreter: Interpreter, token: Token) => {
     // make sure it's two literals on the stack
     // pop them into termA and termB
     interpreter.checkStackSize(token, 2)
     let tokenA = interpreter.pop(token)
     let termA = tokenA.literal
-    interpreter.checkNumber(token, tokenA.literal)
     let tokenB = interpreter.pop(token)
     let termB = tokenB.literal
-    interpreter.checkNumber(token, tokenB.literal)
+
+    // check both numbers
+    if (checkBothAreNumbers) {
+      interpreter.checkNumber(token, tokenA.literal)
+      interpreter.checkNumber(token, tokenB.literal)
+    }
 
     // cast to bool if necessary
     // TODO: decide about non-bool operands and shortcircuiting
@@ -416,13 +331,47 @@ function makeBinaryOperation(symbol: string, castOperandsToBool = false) {
       termB = termB === 0 ? 0 : 1
     }
     // VULN: undefined result
-    let result
+    let result: string | number
+    let type = 'NUMBER'
     let numberA = <number>termA
     let numberB = <number>termB
+    // type bools
+    let eitherIsString = tokenA.type === 'STRING' || tokenB.type === 'STRING'
+    let eitherIsNumber = tokenA.type === 'NUMBER' || tokenB.type === 'NUMBER'
+    let bothAreNumbers = tokenA.type === 'NUMBER' && tokenB.type === 'NUMBER'
+    let stringAndNumber = tokenA.type === 'STRING' && tokenB.type === 'NUMBER'
+    let numberAndString = tokenA.type === 'NUMBER' && tokenB.type === 'STRING'
+
     switch (symbol) {
       // classic binary ops
-      // case '+':
-      //   break
+      case '+':
+        if (bothAreNumbers) {
+          result = <number>termA + <number>termB
+        } else if (eitherIsString) {
+          result = `${<string>termA + <string>termB}`
+          type = 'STRING'
+        } else {
+          interpreter.vm.error(token, 'Invalid types for addition.')
+          result = 0
+        }
+        break
+      case '*':
+        if (bothAreNumbers) {
+          result = <number>termA * <number>termB
+        } else if (numberAndString) {
+          interpreter.checkInt(token, termA)
+          interpreter.checkPositiveNumber(token, termA)
+          result = (<string>termB).repeat(<number>termA)
+          type = 'STRING'
+        } else if (stringAndNumber) {
+          interpreter.checkInt(token, termB)
+          interpreter.checkPositiveNumber(token, termB)
+          result = (<string>termA).repeat(<number>termB)
+          type = 'STRING'
+        } else {
+          interpreter.vm.error(token, 'Invalid types for multiplication.')
+          result = 0
+        }
       case '-':
         result = numberA - numberB
         break
@@ -467,14 +416,16 @@ function makeBinaryOperation(symbol: string, castOperandsToBool = false) {
             : 1
         break
       default:
+        // VULN: zero result just to please TS
+        result = 0
         interpreter.vm.error(token, `Invalid operation`)
+        break
     }
 
     let newToken = new Token(
-      'NUMBER',
-      // @ts-ignore
+      // number by default
+      type,
       `${result}`,
-      // @ts-ignore
       result,
       token.xOff,
       token.yOff

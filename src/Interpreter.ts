@@ -282,6 +282,14 @@ class Interpreter {
     return true
   }
 
+  checkPositiveNumber(token, term): boolean {
+    this.checkNumber(token, term)
+    if (term <= 0) {
+      throw { token, message: `${term} is not positive.` }
+    }
+    return true
+  }
+
   checkString(token, term): boolean {
     if (!(typeof term === 'string' || term instanceof String)) {
       throw { token, message: `${term} is not a string.` }
