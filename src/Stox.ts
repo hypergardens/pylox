@@ -22,7 +22,8 @@ class Stox {
 
   report(line: number, where: string, message: string) {
     let errMsg = `[Line ${line}] Error ${where}: ${message}`
-    console.error(errMsg)
+    // TODO: decide on a place for this
+    // console.error(errMsg)
     this.hadError = true
     this.consoleText.push(errMsg)
     throw errMsg

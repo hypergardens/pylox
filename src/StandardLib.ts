@@ -200,6 +200,7 @@ export const StandardLibrary: LibraryType = {
       token.xOff,
       token.yOff
     )
+    interpreter.place(token, 0, newToken)
     return new StackOperation(interpreter, {
       token,
       added: [newToken],
