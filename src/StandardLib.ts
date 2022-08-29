@@ -4,16 +4,6 @@ import Stox from './Stox'
 import { StackOperation } from './StackOperation'
 import { Token } from './Tokens'
 
-// class Library {
-//   lib: { string: Function }
-//   constructor() {
-//     this.lib = {}
-//   }
-//   addOp(word: string, execution: Function) {
-//     this.lib[word] = execution
-//   }
-// }
-
 type LibraryType = {
   [name: string]: (interpreter: Interpreter, token: Token) => StackOperation
 }
@@ -39,7 +29,7 @@ export const StandardLibrary: LibraryType = {
     interpreter.checkStackSize(token, 2)
     let pullToken = interpreter.pop(token)
     if (pullToken.type === 'NUMBER') {
-      // 2 @
+      // 2] @
       let depth = <number>pullToken.literal
       interpreter.checkInt(token, depth)
       interpreter.checkStackSize(token, depth)
@@ -51,7 +41,7 @@ export const StandardLibrary: LibraryType = {
         removed: [pullToken, pluckedToken],
       })
     } else if (pullToken.type === 'STRING') {
-      // "pi" @
+      // "pi"] @
       let name = <string>pullToken.literal
       let matchingName = interpreter.stack.filter((tok) => tok.name === name)
       if (matchingName.length > 0) {
@@ -122,6 +112,7 @@ export const StandardLibrary: LibraryType = {
       removed: [depthToken, pluckedToken],
     })
   },
+  // elem depth] copy
   copy: (interpreter: Interpreter, token: Token) => {
     interpreter.checkStackSize(token, 1)
     let depthToken = interpreter.pop(token)
@@ -161,9 +152,8 @@ export const StandardLibrary: LibraryType = {
     })
   },
 
-  // put [ depth elem
+  // elem depth] put
   put: (interpreter: Interpreter, token: Token) => {
-    // get element
     interpreter.checkStackSize(token, 1)
     let depthToken = interpreter.pop(token)
     let depth = <number>depthToken.literal
@@ -180,7 +170,6 @@ export const StandardLibrary: LibraryType = {
 
   // BASIC MATH
   /////////////
-  // TODO: integrate + and * into makeBinaryOperation
 
   '+': makeBinaryOperation('+', {}),
   '-': makeBinaryOperation('-', { checkBothAreNumbers: true }),
@@ -224,7 +213,7 @@ export const StandardLibrary: LibraryType = {
   /////////
 
   exec: (interpreter: Interpreter, token: Token) => {
-    // print [ token
+    // token] exec
     interpreter.checkStackSize(token, 1)
     let execToken = interpreter.pop(token)
     if (execToken.type !== 'STRING') {
@@ -262,21 +251,10 @@ export const StandardLibrary: LibraryType = {
       added: [...tokens],
       removed: [execToken],
     })
-
-    // let word = <string>execToken.literal
-    // // TODO: proper exec and merging with Visit Word
-    // let newToken = new Token(
-    //   'STRING',
-    //   word,
-    //   word,
-    //   execToken.xOff,
-    //   execToken.yOff
-    // )
-    // interpreter.visitWORDtoken(newToken)
   },
 
   print: (interpreter: Interpreter, token: Token) => {
-    // print [ token
+    // token] print
     interpreter.checkStackSize(token, 1)
     let printedToken = interpreter.pop(token)
     interpreter.print(printedToken.toString())
@@ -288,7 +266,7 @@ export const StandardLibrary: LibraryType = {
   },
 
   '?': (interpreter: Interpreter, token: Token) => {
-    // ? [cond ifTruthy ifFalsy ...
+    // ifFalsy ifTruthy cond] ?
     interpreter.checkStackSize(token, 3)
     let condToken = <Token>interpreter.stack.pop()
     let ifTruthy = <Token>interpreter.stack.pop()
@@ -418,7 +396,7 @@ function makeBinaryOperation(
       default:
         // VULN: zero result just to please TS
         result = 0
-        interpreter.vm.error(token, `Invalid operation`)
+        interpreter.vm.error(token, `Invalid binary operation`)
         break
     }
 
