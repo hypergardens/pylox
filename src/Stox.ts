@@ -1,4 +1,4 @@
-import Lexer from './FSMLexer'
+import Lexer from './Lexer'
 import Interpreter from './Interpreter'
 import { Token } from './Tokens'
 
