@@ -1,6 +1,6 @@
 import { Token } from './Tokens'
 import Stox from './Stox'
-class FSMLexer {
+class Lexer {
   source: string
   start: number
   current: number
@@ -232,4 +232,4 @@ class FSMLexer {
   }
 }
 
-export default FSMLexer
+export default Lexer

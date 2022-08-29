@@ -1,4 +1,4 @@
-import FSMLexer from './FSMLexer'
+import Lexer from './FSMLexer'
 import Interpreter from './Interpreter'
 import { Token } from './Tokens'
 
@@ -30,7 +30,7 @@ class Stox {
   }
 
   stringToTokens(source: string | Token, addEof = true) {
-    let lexer = new FSMLexer(this)
+    let lexer = new Lexer(this)
     let tokens: Token[] = []
     if (typeof source === 'string') {
       // used by vm in source
